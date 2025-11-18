@@ -182,56 +182,58 @@ export default function App() {
   }
 
   /* ========== MENÚ PRINCIPAL (HOME) ========== */
-  return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 grid place-items-center px-4">
-      <div className="w-full max-w-md bg-white border rounded-2xl shadow p-6 space-y-4">
-        {/* Encabezado del menú principal */}
-        <div className="flex flex-col items-center gap-2">
-          <img
-            src={eanLogo}
-            alt="Universidad EAN"
-            className="w-24 h-auto"
-            draggable={false}
-          />
-          <h1 className="text-lg sm:text-xl font-bold text-emerald-700 text-center">
-            Registro de Bioplásticos — EAN
-          </h1>
-          <p className="text-xs text-gray-600 text-center">
-            Menú principal · Laboratorio de Ingeniería Química
-          </p>
-        </div>
+ return (
+  <div
+    className="min-h-screen w-screen bg-gray-50 text-gray-900 flex items-center justify-center px-4"
+  >
+    <div className="w-full max-w-md bg-white border rounded-2xl shadow p-6 space-y-4">
+      {/* Encabezado del menú principal */}
+      <div className="flex flex-col items-center gap-2">
+        <img
+          src={eanLogo}
+          alt="Universidad EAN"
+          className="w-24 h-auto"
+          draggable={false}
+        />
+        <h1 className="text-lg sm:text-xl font-bold text-emerald-700 text-center">
+          Registro de Bioplásticos — EAN
+        </h1>
+        <p className="text-xs text-gray-600 text-center">
+          Menú principal · Laboratorio de Ingeniería Química
+        </p>
+      </div>
 
-        {/* Botones del menú */}
-        <div className="flex flex-col gap-3 mt-2">
-          <MenuButton onClick={() => setView("lab")}>
-            Ingresar al laboratorio
-          </MenuButton>
+      {/* Botones del menú */}
+      <div className="flex flex-col gap-3 mt-2">
+        <MenuButton onClick={() => setView("lab")}>
+          Ingresar al laboratorio
+        </MenuButton>
 
-          {user?.role === ROLES.ADMIN && (
-            <MenuButton
-              onClick={() => setView("admin-users")}
-              variant="warn"
-            >
-              Gestión de usuarios
-            </MenuButton>
-          )}
-
+        {user?.role === ROLES.ADMIN && (
           <MenuButton
-            onClick={() => {
-              logout();
-              setUser(null);
-            }}
-            variant="secondary"
+            onClick={() => setView("admin-users")}
+            variant="warn"
           >
-            Cerrar sesión
+            Gestión de usuarios
           </MenuButton>
-        </div>
+        )}
 
-        {/* Info de sesión */}
-        <div className="text-center text-xs text-gray-500">
-          Sesión: {user?.email} · Rol: {user?.role}
-        </div>
+        <MenuButton
+          onClick={() => {
+            logout();
+            setUser(null);
+          }}
+          variant="secondary"
+        >
+          Cerrar sesión
+        </MenuButton>
+      </div>
+
+      {/* Info de sesión */}
+      <div className="text-center text-xs text-gray-500">
+        Sesión: {user?.email} · Rol: {user?.role}
       </div>
     </div>
-  );
+  </div>
+);
 }
