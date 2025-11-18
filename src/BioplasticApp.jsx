@@ -402,11 +402,39 @@ export default function BioplasticApp() {
     setQuery("");
     setResults(list);
   };
- return (
+/* ---------------- Render ---------------- */
+  return (
     <div className="min-h-screen w-full bg-gray-50 py-8 px-4 flex justify-center">
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-5xl space-y-4">
+        {/* Encabezado: logo + título + cerrar sesión */}
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src={logoEAN}
+              alt="Universidad EAN"
+              className="h-10 w-auto"
+            />
+            <div>
+              <h1 className="text-lg font-bold text-emerald-700">
+                Bioplástico EAN
+              </h1>
+              <p className="text-xs text-gray-500">
+                Registro de experimentos de bioplástico de almidón
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="text-sm border border-emerald-600 text-emerald-700 rounded-xl px-3 py-1 hover:bg-emerald-50"
+          >
+            Cerrar sesión
+          </button>
+        </header>
+
         {/* Botones principales */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
           <Button
             onClick={() => setView("calculate")}
             className="bg-emerald-600 hover:bg-emerald-700"
@@ -909,6 +937,7 @@ export default function BioplasticApp() {
     </div>
   );
 }
+
 
 
 
