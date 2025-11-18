@@ -61,11 +61,12 @@ export default function App() {
   };
 
   // --------- Vista LAB (app de laboratorio) ---------
-  if (view === "lab") {
-    return (
-      <div className="min-h-screen bg-gray-50 text-gray-900">
+if (view === "lab") {
+  return (
+    <div className="min-h-screen w-screen bg-gray-50 text-gray-900 flex justify-center">
+      <div className="w-full max-w-6xl">
         <Header />
-        <main className="w-full max-w-5xl mx-auto px-4">
+        <main className="w-full px-4">
           <div className="flex justify-between items-center mb-3">
             <button
               onClick={() => setView("home")}
@@ -88,12 +89,14 @@ export default function App() {
               </button>
             </div>
           </div>
+
           {/* Tu app de laboratorio completa */}
           <BioplasticApp />
         </main>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   // --------- Vista ADMIN-USERS ---------
   if (view === "admin-users") {
@@ -141,38 +144,40 @@ export default function App() {
       );
     }
 
-    return (
-      <div className="min-h-screen bg-gray-50 text-gray-900">
-        <Header />
-        <main className="w-full max-w-5xl mx-auto px-4">
-          <div className="flex justify-between items-center mb-3">
+return (
+  <div className="min-h-screen w-screen bg-gray-50 text-gray-900 flex justify-center">
+    <div className="w-full max-w-6xl">
+      <Header />
+      <main className="w-full px-4">
+        <div className="flex justify-between items-center mb-3">
+          <button
+            onClick={() => setView("home")}
+            className="text-sm px-3 py-1 rounded-lg border bg-white hover:bg-gray-50"
+          >
+            ← Volver al menú
+          </button>
+          <div className="flex items-center gap-3 text-xs text-gray-500">
+            <span>
+              Sesión: {user?.email} · Rol: {user?.role}
+            </span>
             <button
-              onClick={() => setView("home")}
-              className="text-sm px-3 py-1 rounded-lg border bg-white hover:bg-gray-50"
+              onClick={() => {
+                logout();
+                setUser(null);
+              }}
+              className="px-3 py-1 rounded-lg border bg-white hover:bg-gray-50 text-[11px]"
             >
-              ← Volver al menú
+              Cerrar sesión
             </button>
-            <div className="flex items-center gap-3 text-xs text-gray-500">
-              <span>
-                Sesión: {user?.email} · Rol: {user?.role}
-              </span>
-              <button
-                onClick={() => {
-                  logout();
-                  setUser(null);
-                }}
-                className="px-3 py-1 rounded-lg border bg-white hover:bg-gray-50 text-[11px]"
-              >
-                Cerrar sesión
-              </button>
-            </div>
           </div>
-          {/* Panel de administración de usuarios */}
-          <AdminUsers />
-        </main>
-      </div>
-    );
-  }
+        </div>
+
+        {/* Panel de administración de usuarios */}
+        <AdminUsers />
+      </main>
+    </div>
+  </div>
+);
 
 // --------- Menú principal (home) ---------
 return (
