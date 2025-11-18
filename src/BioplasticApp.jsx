@@ -7,6 +7,7 @@ import {
 } from "./auth";
 import { logAudit } from "./audit";
 import AuditLog from "./AuditLog.jsx";
+import logoEAN from "./assets/ean-logo.png";
 /* ---------------- Storage & helpers ---------------- */
 const STORAGE = {
   practices: "bioplastic_practices_v1",
@@ -937,6 +938,7 @@ export default function BioplasticApp() {
     </div>
   );
 }
+
 
 
 
