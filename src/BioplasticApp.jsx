@@ -402,516 +402,513 @@ export default function BioplasticApp() {
     setQuery("");
     setResults(list);
   };
-  /* ---------------- Render ---------------- */
  return (
-  <div className="min-h-screen w-full bg-gray-50 py-8 px-4 flex justify-center">
-    <div className="w-full max-w-5xl">
-      {/* Botones principales */}
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-        <Button
-          onClick={() => setView("calculate")}
-          className="bg-emerald-600 hover:bg-emerald-700"
-        >
-          Calcular reactivos
-        </Button>
-        <Button
-          onClick={() => setView("manual")}
-          className="bg-emerald-600 hover:bg-emerald-700"
-        >
-          Ingreso manual
-        </Button>
-        <Button
-          onClick={() => setView("dashboard")}
-          className="bg-emerald-600 hover:bg-emerald-700"
-        >
-          Buscar experimentos
-        </Button>
-        {(isAdmin() || isInstructor()) && (
+    <div className="min-h-screen w-full bg-gray-50 py-8 px-4 flex justify-center">
+      <div className="w-full max-w-5xl">
+        {/* Botones principales */}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
           <Button
-            variant="ghost"
-            onClick={() => setShowAudit(true)}
-            className="border border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+            onClick={() => setView("calculate")}
+            className="bg-emerald-600 hover:bg-emerald-700"
           >
-            Auditoría
+            Calcular reactivos
           </Button>
+          <Button
+            onClick={() => setView("manual")}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            Ingreso manual
+          </Button>
+          <Button
+            onClick={() => setView("dashboard")}
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            Buscar experimentos
+          </Button>
+          {(isAdmin() || isInstructor()) && (
+            <Button
+              variant="ghost"
+              onClick={() => setShowAudit(true)}
+              className="border border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+            >
+              Auditoría
+            </Button>
+          )}
+        </div>
+
+        {/* VISTA: Calcular reactivos */}
+        {view === "calculate" && (
+          <Section title="Calcular reactivos">
+            <p className="text-xs text-gray-500 mb-2">
+              Estos son los datos base del experimento.
+            </p>
+
+            <Field label="Almidón (g)">
+              <NumberInput
+                step="any"
+                value={baseStarch}
+                onChange={(e) =>
+                  setBaseStarch(parseFloat(e.target.value) || 0)
+                }
+              />
+            </Field>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+              <Field label="Agua (mL)">
+                <NumberInput value={calc.water_ml} readOnly />
+              </Field>
+              <Field label="Ácido acético (mL)">
+                <NumberInput value={calc.acetic_ml} readOnly />
+              </Field>
+              <Field label="Glicerina (mL)">
+                <NumberInput value={calc.glycerin_ml} readOnly />
+              </Field>
+            </div>
+
+            <Field label="Número de réplicas">
+              <select
+                className="border rounded px-2 py-1"
+                value={repCalc}
+                onChange={(e) => setRepCalc(Number(e.target.value))}
+              >
+                <option value={1}>1</option>
+                <option value={2}>2 (duplicado)</option>
+                <option value={3}>3 (triplicado)</option>
+              </select>
+            </Field>
+
+            <Button onClick={() => startExperiment(calc, repCalc)}>
+              Iniciar experimento
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setView("home")}
+              className="ml-2"
+            >
+              Volver
+            </Button>
+          </Section>
         )}
-      </div>
 
-      {/* VISTA: Calcular reactivos */}
-      {view === "calculate" && (
-        <Section title="Calcular reactivos">
-          <p className="text-xs text-gray-500 mb-2">
-            Estos son los datos base del experimento.
-          </p>
+        {/* VISTA: Ingreso manual */}
+        {view === "manual" && (
+          <Section title="Ingreso manual">
+            <p className="text-xs text-gray-500 mb-2">
+              Ingresa manualmente los reactivos de una práctica.
+            </p>
 
-          <Field label="Almidón (g)">
-            <NumberInput
-              step="any"
-              value={baseStarch}
-              onChange={(e) =>
-                setBaseStarch(parseFloat(e.target.value) || 0)
-              }
-            />
-          </Field>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
             <Field label="Agua (mL)">
-              <NumberInput value={calc.water_ml} readOnly />
+              <NumberInput
+                value={manual.water_ml}
+                onChange={(e) =>
+                  setManual({
+                    ...manual,
+                    water_ml: parseFloat(e.target.value) || 0,
+                  })
+                }
+              />
             </Field>
             <Field label="Ácido acético (mL)">
-              <NumberInput value={calc.acetic_ml} readOnly />
+              <NumberInput
+                value={manual.acetic_ml}
+                onChange={(e) =>
+                  setManual({
+                    ...manual,
+                    acetic_ml: parseFloat(e.target.value) || 0,
+                  })
+                }
+              />
             </Field>
             <Field label="Glicerina (mL)">
-              <NumberInput value={calc.glycerin_ml} readOnly />
-            </Field>
-          </div>
-
-          <Field label="Número de réplicas">
-            <select
-              className="border rounded px-2 py-1"
-              value={repCalc}
-              onChange={(e) => setRepCalc(Number(e.target.value))}
-            >
-              <option value={1}>1</option>
-              <option value={2}>2 (duplicado)</option>
-              <option value={3}>3 (triplicado)</option>
-            </select>
-          </Field>
-
-          <Button onClick={() => startExperiment(calc, repCalc)}>
-            Iniciar experimento
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setView("home")}
-            className="ml-2"
-          >
-            Volver
-          </Button>
-        </Section>
-      )}
-
-      {/* AQUÍ SIGUE TODO LO DEMÁS QUE YA TENÍAS:
-          - vista "manual"
-          - vista "dashboard"
-          - vista "resume"
-          - etc.
-          NO LO BORRES, solo queda dentro de este <div> */}
-    </div>
-  </div>
-);
-      {/* VISTA: Ingreso manual (placeholder sencillo) */}
-      {view === "manual" && (
-        <Section title="Ingreso manual">
-          <p className="text-xs text-gray-500 mb-2">
-            Ingresa manualmente los reactivos de una práctica.
-          </p>
-
-          <Field label="Agua (mL)">
-            <NumberInput
-              value={manual.water_ml}
-              onChange={(e) =>
-                setManual({
-                  ...manual,
-                  water_ml: parseFloat(e.target.value) || 0,
-                })
-              }
-            />
-          </Field>
-          <Field label="Ácido acético (mL)">
-            <NumberInput
-              value={manual.acetic_ml}
-              onChange={(e) =>
-                setManual({
-                  ...manual,
-                  acetic_ml: parseFloat(e.target.value) || 0,
-                })
-              }
-            />
-          </Field>
-          <Field label="Glicerina (mL)">
-            <NumberInput
-              value={manual.glycerin_ml}
-              onChange={(e) =>
-                setManual({
-                  ...manual,
-                  glycerin_ml: parseFloat(e.target.value) || 0,
-                })
-              }
-            />
-          </Field>
-          <Field label="Almidón (g)">
-            <NumberInput
-              value={manual.starch_g}
-              onChange={(e) =>
-                setManual({
-                  ...manual,
-                  starch_g: parseFloat(e.target.value) || 0,
-                })
-              }
-            />
-          </Field>
-
-          <Field label="Número de réplicas">
-            <select
-              className="border rounded px-2 py-1"
-              value={repManual}
-              onChange={(e) => setRepManual(Number(e.target.value))}
-            >
-              <option value={1}>1</option>
-              <option value={2}>2 (duplicado)</option>
-              <option value={3}>3 (triplicado)</option>
-            </select>
-          </Field>
-
-          {/* Aquí podrías tener tu lógica para guardar manualmente */}
-          <Button variant="ghost" onClick={() => setView("home")}>
-            Volver
-          </Button>
-        </Section>
-      )}
-
-      {/* VISTA: Dashboard / Búsqueda */}
-      {view === "dashboard" && (
-        <Section title="Buscar experimentos">
-          {/* Input de búsqueda */}
-          <div className="flex gap-2 mt-2">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Nº experimento o código EEPPDDMMYY"
-              className="border px-2 py-1 rounded text-sm flex-1"
-            />
-            <Button
-              onClick={() => handleSearch(query)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-sm"
-            >
-              Buscar
-            </Button>
-            <Button variant="outline" onClick={showAll} className="text-sm">
-              Ver todos
-            </Button>
-          </div>
-
-          {/* Filtros */}
-          <div className="flex items-center gap-3 text-sm mt-4">
-            <span className="text-gray-500">Modo:</span>
-
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="mode"
-                value="auto"
-                checked={searchMode === "auto"}
-                onChange={(e) => setSearchMode(e.target.value)}
-              />{" "}
-              Auto
-            </label>
-
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="mode"
-                value="code"
-                checked={searchMode === "code"}
-                onChange={(e) => setSearchMode(e.target.value)}
-              />{" "}
-              Por código
-            </label>
-
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="mode"
-                value="exp"
-                checked={searchMode === "exp"}
-                onChange={(e) => setSearchMode(e.target.value)}
-              />{" "}
-              Por Nº exp.
-            </label>
-
-            <label className="ml-auto flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={showMineOnly}
-                onChange={(e) => setShowMineOnly(e.target.checked)}
-              />
-              Solo mis experimentos
-            </label>
-          </div>
-
-          {/* Resultados */}
-          {results === null ? (
-            <p className="text-sm text-gray-500 mt-3">
-              Realiza una búsqueda para ver resultados.
-            </p>
-          ) : results.length === 0 ? (
-            <p className="text-sm text-rose-600 mt-3">
-              No se encontraron prácticas.
-            </p>
-          ) : (
-            <div className="mt-4 space-y-4">
-              {Array.from(
-                new Map(
-                  results.map((p) => [p.experimentNumber, true])
-                ).keys()
-              ).map((num) => {
-                // Agrupar por experimento
-                let group = results
-                  .filter((p) => p.experimentNumber === num)
-                  .sort(
-                    (a, b) => a.practiceNumber - b.practiceNumber
-                  );
-
-                const exp = getExperiment(num);
-
-                // Filtro "solo mis experimentos"
-                if (showMineOnly) {
-                  const u = getCurrentUser();
-                  group = group.filter((p) => p.ownerId === u?.id);
-                  if (group.length === 0) return null;
+              <NumberInput
+                value={manual.glycerin_ml}
+                onChange={(e) =>
+                  setManual({
+                    ...manual,
+                    glycerin_ml: parseFloat(e.target.value) || 0,
+                  })
                 }
+              />
+            </Field>
+            <Field label="Almidón (g)">
+              <NumberInput
+                value={manual.starch_g}
+                onChange={(e) =>
+                  setManual({
+                    ...manual,
+                    starch_g: parseFloat(e.target.value) || 0,
+                  })
+                }
+              />
+            </Field>
 
-                // Acciones del grupo
-                const exportCSV = () => {
-                  const csv = buildGroupCSV(exp, group);
-                  downloadBlob(
-                    `exp_${pad2(num)}_${todayDDMMYY()}.csv`,
-                    csv
-                  );
-                };
+            <Field label="Número de réplicas">
+              <select
+                className="border rounded px-2 py-1"
+                value={repManual}
+                onChange={(e) => setRepManual(Number(e.target.value))}
+              >
+                <option value={1}>1</option>
+                <option value={2}>2 (duplicado)</option>
+                <option value={3}>3 (triplicado)</option>
+              </select>
+            </Field>
 
-                const copyCodes = () => {
-                  const txt = group.map((p) => p.code).join("\n");
-                  navigator.clipboard.writeText(txt);
-                  alert("Códigos copiados.");
-                };
+            <Button variant="ghost" onClick={() => setView("home")}>
+              Volver
+            </Button>
+          </Section>
+        )}
 
-                return (
-                  <div
-                    key={num}
-                    className="border rounded-lg p-4 bg-white shadow-sm"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-sm">
-                        Experimento {num}
-                      </h3>
-                      <div className="flex gap-2 text-xs">
-                        <button
-                          onClick={exportCSV}
-                          className="underline"
-                        >
-                          Exportar CSV
-                        </button>
-                        <button
-                          onClick={copyCodes}
-                          className="underline"
-                        >
-                          Copiar códigos
-                        </button>
+        {/* VISTA: Dashboard / Búsqueda */}
+        {view === "dashboard" && (
+          <Section title="Buscar experimentos">
+            {/* Input de búsqueda */}
+            <div className="flex gap-2 mt-2">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Nº experimento o código EEPPDDMMYY"
+                className="border px-2 py-1 rounded text-sm flex-1"
+              />
+              <Button
+                onClick={() => handleSearch(query)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-sm"
+              >
+                Buscar
+              </Button>
+              <Button
+                variant="outline"
+                onClick={showAll}
+                className="text-sm"
+              >
+                Ver todos
+              </Button>
+            </div>
+
+            {/* Filtros */}
+            <div className="flex items-center gap-3 text-sm mt-4">
+              <span className="text-gray-500">Modo:</span>
+
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="mode"
+                  value="auto"
+                  checked={searchMode === "auto"}
+                  onChange={(e) => setSearchMode(e.target.value)}
+                />{" "}
+                Auto
+              </label>
+
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="mode"
+                  value="code"
+                  checked={searchMode === "code"}
+                  onChange={(e) => setSearchMode(e.target.value)}
+                />{" "}
+                Por código
+              </label>
+
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="mode"
+                  value="exp"
+                  checked={searchMode === "exp"}
+                  onChange={(e) => setSearchMode(e.target.value)}
+                />{" "}
+                Por Nº exp.
+              </label>
+
+              <label className="ml-auto flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={showMineOnly}
+                  onChange={(e) => setShowMineOnly(e.target.checked)}
+                />
+                Solo mis experimentos
+              </label>
+            </div>
+
+            {/* Resultados */}
+            {results === null ? (
+              <p className="text-sm text-gray-500 mt-3">
+                Realiza una búsqueda para ver resultados.
+              </p>
+            ) : results.length === 0 ? (
+              <p className="text-sm text-rose-600 mt-3">
+                No se encontraron prácticas.
+              </p>
+            ) : (
+              <div className="mt-4 space-y-4">
+                {Array.from(
+                  new Map(
+                    results.map((p) => [p.experimentNumber, true])
+                  ).keys()
+                ).map((num) => {
+                  // Agrupar por experimento
+                  let group = results
+                    .filter((p) => p.experimentNumber === num)
+                    .sort(
+                      (a, b) => a.practiceNumber - b.practiceNumber
+                    );
+
+                  const exp = getExperiment(num);
+
+                  // Filtro "solo mis experimentos"
+                  if (showMineOnly) {
+                    const u = getCurrentUser();
+                    group = group.filter((p) => p.ownerId === u?.id);
+                    if (group.length === 0) return null;
+                  }
+
+                  // Acciones del grupo
+                  const exportCSV = () => {
+                    const csv = buildGroupCSV(exp, group);
+                    downloadBlob(
+                      `exp_${pad2(num)}_${todayDDMMYY()}.csv`,
+                      csv
+                    );
+                  };
+
+                  const copyCodes = () => {
+                    const txt = group.map((p) => p.code).join("\n");
+                    navigator.clipboard.writeText(txt);
+                    alert("Códigos copiados.");
+                  };
+
+                  return (
+                    <div
+                      key={num}
+                      className="border rounded-lg p-4 bg-white shadow-sm"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-sm">
+                          Experimento {num}
+                        </h3>
+                        <div className="flex gap-2 text-xs">
+                          <button
+                            onClick={exportCSV}
+                            className="underline"
+                          >
+                            Exportar CSV
+                          </button>
+                          <button
+                            onClick={copyCodes}
+                            className="underline"
+                          >
+                            Copiar códigos
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                        {group.map((p) => (
+                          <button
+                            key={p.code}
+                            onClick={() => openPractice(p)}
+                            className="border rounded px-2 py-1 text-left hover:bg-emerald-50"
+                          >
+                            <div className="font-mono text-[11px]">
+                              {p.code}
+                            </div>
+                            <div>Práctica #{p.practiceNumber}</div>
+                          </button>
+                        ))}
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+        )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-                      {group.map((p) => (
-                        <button
-                          key={p.code}
-                          onClick={() => openPractice(p)}
-                          className="border rounded px-2 py-1 text-left hover:bg-emerald-50"
-                        >
-                          <div className="font-mono text-[11px]">
-                            {p.code}
-                          </div>
-                          <div>Práctica #{p.practiceNumber}</div>
-                        </button>
-                      ))}
+        {/* VISTA: Resumen práctica activa */}
+        {active && view === "resume" && (
+          <Section title={`Práctica ${active.code}`}>
+            {(() => {
+              const editable = canEdit(active);
+
+              return (
+                <>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Detalle de la práctica seleccionada.{" "}
+                    {editable
+                      ? "Puedes registrar tiempo, temperatura y notas."
+                      : "Solo puedes consultar la información. Esta práctica pertenece a otro usuario."}
+                  </p>
+
+                  {/* Info básica */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs mb-4">
+                    <div className="border rounded px-2 py-1">
+                      <div className="text-gray-500">Experimento</div>
+                      <div className="font-semibold">
+                        {active.experimentNumber}
+                      </div>
+                    </div>
+                    <div className="border rounded px-2 py-1">
+                      <div className="text-gray-500">Práctica</div>
+                      <div className="font-semibold">
+                        {active.practiceNumber}
+                      </div>
+                    </div>
+                    <div className="border rounded px-2 py-1">
+                      <div className="text-gray-500">Código</div>
+                      <div className="font-mono text-[11px]">
+                        {active.code}
+                      </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </Section>
-      )}
 
-      {/* VISTA: Resumen práctica activa */}
-      {active && view === "resume" && (
-        <Section title={`Práctica ${active.code}`}>
-          {(() => {
-            const editable = canEdit(active);
-
-            return (
-              <>
-                <p className="text-xs text-gray-500 mb-3">
-                  Detalle de la práctica seleccionada.{" "}
-                  {editable
-                    ? "Puedes registrar tiempo, temperatura y notas."
-                    : "Solo puedes consultar la información. Esta práctica pertenece a otro usuario."}
-                </p>
-
-                {/* Info básica */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs mb-4">
-                  <div className="border rounded px-2 py-1">
-                    <div className="text-gray-500">Experimento</div>
-                    <div className="font-semibold">
-                      {active.experimentNumber}
+                  {/* Timer de calentamiento */}
+                  <div className="mb-4 border rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold">
+                        Tiempo de calentamiento
+                      </span>
+                      <span className="font-mono text-lg">
+                        {String(
+                          Math.floor(timer.seconds / 60)
+                        ).padStart(2, "0")}
+                        :
+                        {String(timer.seconds % 60).padStart(2, "0")}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={startTimer}
+                        disabled={!editable || timer.running}
+                      >
+                        Iniciar / continuar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setTimer((t) => ({ ...t, running: false }))
+                        }
+                        disabled={!editable}
+                      >
+                        Pausar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() =>
+                          setTimer({ running: false, seconds: 0 })
+                        }
+                        disabled={!editable}
+                      >
+                        Reiniciar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          updateActive({ heatSeconds: timer.seconds })
+                        }
+                        disabled={!editable}
+                      >
+                        Guardar tiempo
+                      </Button>
                     </div>
                   </div>
-                  <div className="border rounded px-2 py-1">
-                    <div className="text-gray-500">Práctica</div>
-                    <div className="font-semibold">
-                      {active.practiceNumber}
-                    </div>
-                  </div>
-                  <div className="border rounded px-2 py-1">
-                    <div className="text-gray-500">Código</div>
-                    <div className="font-mono text-[11px]">
-                      {active.code}
-                    </div>
-                  </div>
-                </div>
 
-                {/* Timer de calentamiento */}
-                <div className="mb-4 border rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold">
-                      Tiempo de calentamiento
-                    </span>
-                    <span className="font-mono text-lg">
-                      {String(Math.floor(timer.seconds / 60)).padStart(2, "0")}
-                      :
-                      {String(timer.seconds % 60).padStart(2, "0")}
-                    </span>
+                  {/* Temperatura máxima */}
+                  <Field label="Temperatura máxima alcanzada (°C)">
+                    <NumberInput
+                      value={maxTemp}
+                      onChange={(e) => setMaxTemp(e.target.value)}
+                      readOnly={!editable}
+                    />
+                  </Field>
+
+                  {/* Notas */}
+                  <Field label="Notas de calentamiento">
+                    <textarea
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      rows={3}
+                      value={heatNotes}
+                      onChange={(e) => setHeatNotes(e.target.value)}
+                      readOnly={!editable}
+                    />
+                  </Field>
+
+                  <Field label="Notas finales / observaciones de la película">
+                    <textarea
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      rows={3}
+                      value={finalNotes}
+                      onChange={(e) => setFinalNotes(e.target.value)}
+                      readOnly={!editable}
+                    />
+                  </Field>
+
+                  {/* Foto final */}
+                  <div className="mt-3">
+                    <label className="text-sm font-medium block mb-1">
+                      Foto de la película (opcional)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) savePhoto(file);
+                      }}
+                      className="text-xs"
+                      disabled={!editable}
+                    />
+                    {active.finalPhotoDataUrl && (
+                      <div className="mt-2">
+                        <img
+                          src={active.finalPhotoDataUrl}
+                          alt="Película final"
+                          className="max-h-48 rounded border"
+                        />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex gap-2">
+
+                  {/* Botones de guardar y navegación */}
+                  <div className="mt-4 flex flex-wrap gap-2">
                     <Button
-                      onClick={startTimer}
-                      disabled={!editable || timer.running}
+                      onClick={() =>
+                        updateActive({
+                          heatingNotes: heatNotes,
+                          finalNotes,
+                          maxTemp: maxTemp ? Number(maxTemp) : null,
+                          heatSeconds: timer.seconds,
+                        })
+                      }
+                      disabled={!editable}
                     >
-                      Iniciar / continuar
+                      Guardar cambios
                     </Button>
+
                     <Button
                       variant="outline"
-                      onClick={() =>
-                        setTimer((t) => ({ ...t, running: false }))
-                      }
-                      disabled={!editable}
+                      onClick={() => {
+                        setActive(null);
+                        setView("dashboard");
+                      }}
                     >
-                      Pausar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() =>
-                        setTimer({ running: false, seconds: 0 })
-                      }
-                      disabled={!editable}
-                    >
-                      Reiniciar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        updateActive({ heatSeconds: timer.seconds })
-                      }
-                      disabled={!editable}
-                    >
-                      Guardar tiempo
+                      Volver a la búsqueda
                     </Button>
                   </div>
-                </div>
+                </>
+              );
+            })()}
+          </Section>
+        )}
 
-                {/* Temperatura máxima */}
-                <Field label="Temperatura máxima alcanzada (°C)">
-                  <NumberInput
-                    value={maxTemp}
-                    onChange={(e) => setMaxTemp(e.target.value)}
-                    readOnly={!editable}
-                  />
-                </Field>
-
-                {/* Notas */}
-                <Field label="Notas de calentamiento">
-                  <textarea
-                    className="w-full border rounded px-2 py-1 text-sm"
-                    rows={3}
-                    value={heatNotes}
-                    onChange={(e) => setHeatNotes(e.target.value)}
-                    readOnly={!editable}
-                  />
-                </Field>
-
-                <Field label="Notas finales / observaciones de la película">
-                  <textarea
-                    className="w-full border rounded px-2 py-1 text-sm"
-                    rows={3}
-                    value={finalNotes}
-                    onChange={(e) => setFinalNotes(e.target.value)}
-                    readOnly={!editable}
-                  />
-                </Field>
-
-                {/* Foto final */}
-                <div className="mt-3">
-                  <label className="text-sm font-medium block mb-1">
-                    Foto de la película (opcional)
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) savePhoto(file);
-                    }}
-                    className="text-xs"
-                    disabled={!editable}
-                  />
-                  {active.finalPhotoDataUrl && (
-                    <div className="mt-2">
-                      <img
-                        src={active.finalPhotoDataUrl}
-                        alt="Película final"
-                        className="max-h-48 rounded border"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Botones de guardar y navegación */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    onClick={() =>
-                      updateActive({
-                        heatingNotes: heatNotes,
-                        finalNotes,
-                        maxTemp: maxTemp ? Number(maxTemp) : null,
-                        heatSeconds: timer.seconds,
-                      })
-                    }
-                    disabled={!editable}
-                  >
-                    Guardar cambios
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setActive(null);
-                      setView("dashboard");
-                    }}
-                  >
-                    Volver a la búsqueda
-                  </Button>
-                </div>
-              </>
-            );
-          })()}
-        </Section>
-      )}
-
-      {/* Modal / panel de Auditoría */}
-      {showAudit && <AuditLog onClose={() => setShowAudit(false)} />}
-    </>
+        {/* Modal / panel de Auditoría */}
+        {showAudit && <AuditLog onClose={() => setShowAudit(false)} />}
+      </div>
+    </div>
   );
 }
+
 
 
