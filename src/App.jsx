@@ -60,48 +60,48 @@ export default function App() {
     );
   };
 
-  // --------- Vista LAB (app de laboratorio) ---------
-if (view === "lab") {
-  return (
-    <div className="min-h-screen w-screen bg-gray-50 text-gray-900 flex justify-center">
-      <div className="w-full max-w-6xl">
-        <Header />
-        <main className="w-full px-4">
-          <div className="flex justify-between items-center mb-3">
-            <button
-              onClick={() => setView("home")}
-              className="text-sm px-3 py-1 rounded-lg border bg-white hover:bg-gray-50"
-            >
-              ← Volver al menú
-            </button>
-            <div className="flex items-center gap-3 text-xs text-gray-500">
-              <span>
-                Sesión: {user?.email} · Rol: {user?.role}
-              </span>
+  /* ========== VISTA LABORATORIO ========== */
+  if (view === "lab") {
+    return (
+      <div className="min-h-screen w-screen bg-gray-50 text-gray-900 flex justify-center">
+        <div className="w-full max-w-6xl">
+          <Header />
+          <main className="w-full px-4">
+            <div className="flex justify-between items-center mb-3">
               <button
-                onClick={() => {
-                  logout();
-                  setUser(null);
-                }}
-                className="px-3 py-1 rounded-lg border bg-white hover:bg-gray-50 text-[11px]"
+                onClick={() => setView("home")}
+                className="text-sm px-3 py-1 rounded-lg border bg-white hover:bg-gray-50"
               >
-                Cerrar sesión
+                ← Volver al menú
               </button>
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                <span>
+                  Sesión: {user?.email} · Rol: {user?.role}
+                </span>
+                <button
+                  onClick={() => {
+                    logout();
+                    setUser(null);
+                  }}
+                  className="px-3 py-1 rounded-lg border bg-white hover:bg-gray-50 text-[11px]"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Tu app de laboratorio completa */}
-          <BioplasticApp />
-        </main>
+            {/* App de laboratorio completa */}
+            <BioplasticApp />
+          </main>
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-  // --------- Vista ADMIN-USERS ---------
+  /* ========== VISTA ADMIN-USERS ========== */
   if (view === "admin-users") {
+    // Si NO es admin -> tarjeta centrada con mensaje
     if (user?.role !== ROLES.ADMIN) {
-      // Bloqueo suave si no es admin
       return (
         <div className="min-h-screen bg-gray-50 text-gray-900 grid place-items-center px-4">
           <div className="w-full max-w-md bg-white border rounded-2xl shadow p-6 space-y-4">
@@ -144,94 +144,94 @@ if (view === "lab") {
       );
     }
 
-return (
-  <div className="min-h-screen w-screen bg-gray-50 text-gray-900 flex justify-center">
-    <div className="w-full max-w-6xl">
-      <Header />
-      <main className="w-full px-4">
-        <div className="flex justify-between items-center mb-3">
-          <button
-            onClick={() => setView("home")}
-            className="text-sm px-3 py-1 rounded-lg border bg-white hover:bg-gray-50"
-          >
-            ← Volver al menú
-          </button>
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span>
-              Sesión: {user?.email} · Rol: {user?.role}
-            </span>
-            <button
-              onClick={() => {
-                logout();
-                setUser(null);
-              }}
-              className="px-3 py-1 rounded-lg border bg-white hover:bg-gray-50 text-[11px]"
-            >
-              Cerrar sesión
-            </button>
-          </div>
+    // Si SÍ es admin -> panel centrado en ancho
+    return (
+      <div className="min-h-screen w-screen bg-gray-50 text-gray-900 flex justify-center">
+        <div className="w-full max-w-6xl">
+          <Header />
+          <main className="w-full px-4">
+            <div className="flex justify-between items-center mb-3">
+              <button
+                onClick={() => setView("home")}
+                className="text-sm px-3 py-1 rounded-lg border bg-white hover:bg-gray-50"
+              >
+                ← Volver al menú
+              </button>
+              <div className="flex items-center gap-3 text-xs text-gray-500">
+                <span>
+                  Sesión: {user?.email} · Rol: {user?.role}
+                </span>
+                <button
+                  onClick={() => {
+                    logout();
+                    setUser(null);
+                  }}
+                  className="px-3 py-1 rounded-lg border bg-white hover:bg-gray-50 text-[11px]"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            </div>
+
+            {/* Panel de administración de usuarios */}
+            <AdminUsers />
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  /* ========== MENÚ PRINCIPAL (HOME) ========== */
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-900 grid place-items-center px-4">
+      <div className="w-full max-w-md bg-white border rounded-2xl shadow p-6 space-y-4">
+        {/* Encabezado del menú principal */}
+        <div className="flex flex-col items-center gap-2">
+          <img
+            src={eanLogo}
+            alt="Universidad EAN"
+            className="w-24 h-auto"
+            draggable={false}
+          />
+          <h1 className="text-lg sm:text-xl font-bold text-emerald-700 text-center">
+            Registro de Bioplásticos — EAN
+          </h1>
+          <p className="text-xs text-gray-600 text-center">
+            Menú principal · Laboratorio de Ingeniería Química
+          </p>
         </div>
 
-        {/* Panel de administración de usuarios */}
-        <AdminUsers />
-      </main>
-    </div>
-  </div>
-);
-
-// --------- Menú principal (home) ---------
-return (
-  <div
-    className="min-h-screen w-screen bg-gray-50 text-gray-900 flex items-center justify-center px-4"
-  >
-    <div className="w-full max-w-md bg-white border rounded-2xl shadow p-6 space-y-4">
-      {/* Encabezado del menú principal */}
-      <div className="flex flex-col items-center gap-2">
-        <img
-          src={eanLogo}
-          alt="Universidad EAN"
-          className="w-24 h-auto"
-          draggable={false}
-        />
-        <h1 className="text-lg sm:text-xl font-bold text-emerald-700 text-center">
-          Registro de Bioplásticos — EAN
-        </h1>
-        <p className="text-xs text-gray-600 text-center">
-          Menú principal · Laboratorio de Ingeniería Química
-        </p>
-      </div>
-
-      {/* Botones del menú */}
-      <div className="flex flex-col gap-3 mt-2">
-        <MenuButton onClick={() => setView("lab")}>
-          Ingresar al laboratorio
-        </MenuButton>
-
-        {user?.role === ROLES.ADMIN && (
-          <MenuButton
-            onClick={() => setView("admin-users")}
-            variant="warn"
-          >
-            Gestión de usuarios
+        {/* Botones del menú */}
+        <div className="flex flex-col gap-3 mt-2">
+          <MenuButton onClick={() => setView("lab")}>
+            Ingresar al laboratorio
           </MenuButton>
-        )}
 
-        <MenuButton
-          onClick={() => {
-            logout();
-            setUser(null);
-          }}
-          variant="secondary"
-        >
-          Cerrar sesión
-        </MenuButton>
-      </div>
+          {user?.role === ROLES.ADMIN && (
+            <MenuButton
+              onClick={() => setView("admin-users")}
+              variant="warn"
+            >
+              Gestión de usuarios
+            </MenuButton>
+          )}
 
-      {/* Info de sesión */}
-      <div className="text-center text-xs text-gray-500">
-        Sesión: {user?.email} · Rol: {user?.role}
+          <MenuButton
+            onClick={() => {
+              logout();
+              setUser(null);
+            }}
+            variant="secondary"
+          >
+            Cerrar sesión
+          </MenuButton>
+        </div>
+
+        {/* Info de sesión */}
+        <div className="text-center text-xs text-gray-500">
+          Sesión: {user?.email} · Rol: {user?.role}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 }
