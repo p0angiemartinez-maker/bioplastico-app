@@ -187,7 +187,7 @@ function ReliabilityCard({ practices }) {
 }
 
 /* ---------------- Componente principal ---------------- */
-export default function BioplasticApp() {
+export default function BioplasticApp({ onLogout }) {
   const [view, setView] = useState("home");
   const [baseStarch, setBaseStarch] = useState(10);
   const calc = useMemo(() => calcByStarch(baseStarch), [baseStarch]);
@@ -960,6 +960,7 @@ export default function BioplasticApp() {
     </div>
   );
 }
+
 
 
 
