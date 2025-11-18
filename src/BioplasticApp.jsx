@@ -427,7 +427,7 @@ export default function BioplasticApp() {
 
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => window.location.reload()}
             className="text-sm border border-emerald-600 text-emerald-700 rounded-xl px-3 py-1 hover:bg-emerald-50"
           >
             Cerrar sesión
@@ -938,6 +938,7 @@ export default function BioplasticApp() {
     </div>
   );
 }
+
 
 
 
