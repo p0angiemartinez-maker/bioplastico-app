@@ -915,9 +915,9 @@ export default function BioplasticApp() {
         </Section>
       )}
 
-      {/* Modal / panel de Auditoría */}
       {showAudit && <AuditLog onClose={() => setShowAudit(false)} />}
-    </>
-  );
-
+    </div>
+  </div>
+);
 }
+
