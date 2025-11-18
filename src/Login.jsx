@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import * as Auth from "./auth"; // 👈 importamos TODO el módulo como 'Auth'
+import * as Auth from "./auth";
 import logoEAN from "./assets/ean-logo.png";
 
 export default function Login({ onLogin }) {
@@ -32,17 +32,18 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen grid place-items-center bg-gray-50">
+    // Pantalla completa, por encima de cualquier layout del resto de la app
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-50">
       <form
         onSubmit={submit}
-        className="w-full max-w-sm bg-white border rounded-2xl shadow p-6 space-y-4"
+        className="w-full max-w-sm bg-white border rounded-2xl shadow-lg p-6 space-y-4"
       >
-        {/* Logo EAN arriba */}
+        {/* Logo + título */}
         <div className="flex flex-col items-center mb-2">
           <img
             src={logoEAN}
             alt="Logo Universidad EAN"
-            className="h-16 mb-2"
+            className="h-16 mb-3"
           />
           <h1 className="text-lg font-bold text-emerald-700 text-center">
             Bioplástico EAN · Acceso
@@ -74,7 +75,7 @@ export default function Login({ onLogin }) {
         {msg && <div className="text-sm text-rose-600">{msg}</div>}
 
         <button
-          className="w-full bg-emerald-600 text-white rounded-xl py-2 font-semibold hover:bg-emerald-700"
+          className="w-full bg-emerald-600 text-white rounded-xl py-2 font-semibold hover:bg-emerald-700 transition"
           type="submit"
         >
           Entrar
@@ -87,3 +88,4 @@ export default function Login({ onLogin }) {
     </div>
   );
 }
+
