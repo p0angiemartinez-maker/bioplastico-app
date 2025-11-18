@@ -130,11 +130,13 @@ export default function App() {
     );
   }
 
-  // --------- Menú principal (home) ---------
-  return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col items-center">
+ // --------- Menú principal (home) ---------
+return (
+  <div className="min-h-screen bg-gray-50 text-gray-900 flex justify-center items-center px-4">
+    <div className="w-full max-w-lg flex flex-col items-center">
       <Header />
-      <main className="w-full max-w-lg flex flex-col gap-3 px-4">
+
+      <main className="w-full flex flex-col gap-3 mt-4">
         <MenuButton onClick={() => setView("lab")}>
           Ingresar al laboratorio
         </MenuButton>
@@ -161,5 +163,6 @@ export default function App() {
         </div>
       </main>
     </div>
-  );
+  </div>
+);
 }
