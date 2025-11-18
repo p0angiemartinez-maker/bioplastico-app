@@ -738,11 +738,7 @@ export default function BioplasticApp() {
       {active && view === "resume" && (
         <Section title={`Práctica ${active.code}`}>
           {(() => {
-            const current = getCurrentUser();
-            const editable =
-              !!current &&
-              (active.ownerId === current.id || isAdmin() || isInstructor()) &&
-              !active.closed;
+            const editable = canEdit(active);
 
             return (
               <>
@@ -782,10 +778,7 @@ export default function BioplasticApp() {
                       Tiempo de calentamiento
                     </span>
                     <span className="font-mono text-lg">
-                      {String(Math.floor(timer.seconds / 60)).padStart(
-                        2,
-                        "0"
-                      )}
+                      {String(Math.floor(timer.seconds / 60)).padStart(2, "0")}
                       :
                       {String(timer.seconds % 60).padStart(2, "0")}
                     </span>
@@ -915,9 +908,10 @@ export default function BioplasticApp() {
         </Section>
       )}
 
+      {/* Modal / panel de Auditoría */}
       {showAudit && <AuditLog onClose={() => setShowAudit(false)} />}
-    </div>
-  </div>
-);
+    </>
+  );
 }
+
 
