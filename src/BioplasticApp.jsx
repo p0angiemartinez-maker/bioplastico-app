@@ -403,8 +403,9 @@ export default function BioplasticApp() {
     setResults(list);
   };
   /* ---------------- Render ---------------- */
-  return (
-    <>
+ return (
+  <div className="min-h-screen w-full bg-gray-50 py-8 px-4 flex justify-center">
+    <div className="w-full max-w-5xl">
       {/* Botones principales */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
         <Button
@@ -490,6 +491,15 @@ export default function BioplasticApp() {
         </Section>
       )}
 
+      {/* AQUÍ SIGUE TODO LO DEMÁS QUE YA TENÍAS:
+          - vista "manual"
+          - vista "dashboard"
+          - vista "resume"
+          - etc.
+          NO LO BORRES, solo queda dentro de este <div> */}
+    </div>
+  </div>
+);
       {/* VISTA: Ingreso manual (placeholder sencillo) */}
       {view === "manual" && (
         <Section title="Ingreso manual">
@@ -909,4 +919,5 @@ export default function BioplasticApp() {
       {showAudit && <AuditLog onClose={() => setShowAudit(false)} />}
     </>
   );
+
 }
