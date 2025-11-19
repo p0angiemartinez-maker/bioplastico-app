@@ -430,35 +430,6 @@ useEffect(() => {
             </div>
           </div>
 
-<button
-  type="button"
-  onClick={() => {
-    // 🔐 Intentar borrar posibles claves de usuario en localStorage
-    try {
-      // Algunos nombres típicos que puede estar usando auth.js
-      localStorage.removeItem("currentUser");
-      localStorage.removeItem("user");
-      localStorage.removeItem("bioplastic_current_user_v1");
-      localStorage.removeItem("bioplastic_currentUser_v1");
-
-      // Si auth.js usa otra clave, esto ayuda a “limpiar sesión” rápida:
-      // (no toca tus prácticas ni experimentos si están en otras claves)
-      Object.keys(localStorage).forEach((k) => {
-        if (k.toLowerCase().includes("user") || k.toLowerCase().includes("auth")) {
-          localStorage.removeItem(k);
-        }
-      });
-    } catch (e) {
-      console.warn("No se pudo limpiar completamente la sesión:", e);
-    }
-
-    // 🔄 Recargar para volver a la pantalla de login
-    window.location.reload();
-  }}
-  className="text-sm border border-emerald-600 text-emerald-700 rounded-xl px-3 py-1 hover:bg-emerald-50"
->
-  Cerrar sesión
-</button>
         </header>
 
         {/* Botones principales */}
@@ -972,6 +943,7 @@ useEffect(() => {
     </div>
   );
 }
+
 
 
 
