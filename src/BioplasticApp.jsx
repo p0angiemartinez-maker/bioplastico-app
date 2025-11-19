@@ -999,186 +999,183 @@ export default function BioplasticApp({ onLogout }) {
           </Section>
         )}
 
-        {/* VISTA: Resumen práctica activa */}
-        {active && view === "resume" && (
-          <Section title={`Práctica ${active.code}`}>
-            {(() => {
-              const editable = canEdit(active);
+{/* VISTA: Resumen práctica activa */}
+{active && view === "resume" && (
+  <Section title={`Práctica ${active.code}`}>
+    {(() => {
+      const editable = canEdit(active);
 
-              return (
-                <>
-                  <p className="text-xs text-gray-500 mb-3">
-                    Detalle de la práctica seleccionada.{" "}
-                    {editable
-                      ? "Puedes registrar tiempo, temperatura y notas."
-                      : "Solo puedes consultar la información. Esta práctica pertenece a otro usuario."}
-                  </p>
+      return (
+        <>
+          <p className="text-xs text-gray-500 mb-3">
+            Detalle de la práctica seleccionada.{" "}
+            {editable
+              ? "Puedes registrar tiempo, temperatura y notas."
+              : "Solo puedes consultar la información. Esta práctica pertenece a otro usuario."}
+          </p>
 
-                  {/* Info básica */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs mb-4">
-                    <div className="border rounded px-2 py-1">
-                      <div className="text-gray-500">Experimento</div>
-                      <div className="font-semibold">
-                        {active.experimentNumber}
-                      </div>
-                    </div>
-                    <div className="border rounded px-2 py-1">
-                      <div className="text-gray-500">Práctica</div>
-                      <div className="font-semibold">
-                        {active.practiceNumber}
-                      </div>
-                    </div>
-                    <div className="border rounded px-2 py-1">
-                      <div className="text-gray-500">Código</div>
-                      <div className="font-mono text-[11px]">
-                        {active.code}
-                      </div>
-                    </div>
-                  </div>
+          {/* Info básica */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs mb-4">
+            <div className="border rounded px-2 py-1">
+              <div className="text-gray-500">Experimento</div>
+              <div className="font-semibold">
+                {active.experimentNumber}
+              </div>
+            </div>
+            <div className="border rounded px-2 py-1">
+              <div className="text-gray-500">Práctica</div>
+              <div className="font-semibold">
+                {active.practiceNumber}
+              </div>
+            </div>
+            <div className="border rounded px-2 py-1">
+              <div className="text-gray-500">Código</div>
+              <div className="font-mono text-[11px]">
+                {active.code}
+              </div>
+            </div>
+          </div>
 
-{/* Timer de calentamiento */}
-<div className="mb-4 border rounded-lg p-4">
-  {/* Título + tiempo centrado */}
-  <div className="flex flex-col items-center mb-3">
-    <span className="text-sm font-semibold mb-1">
-      Tiempo de calentamiento
-    </span>
+          {/* Timer de calentamiento */}
+          <div className="mb-4 border rounded-lg p-4">
+            <div className="flex flex-col items-center mb-3">
+              <span className="text-sm font-semibold mb-1">
+                Tiempo de calentamiento
+              </span>
 
-    <span className="font-mono text-3xl tracking-wide">
-      {String(Math.floor(timer.seconds / 60)).padStart(2, "0")}:
-      {String(timer.seconds % 60).padStart(2, "0")}
-    </span>
-  </div>
+              <span className="font-mono text-3xl tracking-wide">
+                {String(Math.floor(timer.seconds / 60)).padStart(2, "0")}:
+                {String(timer.seconds % 60).padStart(2, "0")}
+              </span>
+            </div>
 
-  {/* Botones de control */}
-  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-    <Button
-      onClick={startTimer}
-      disabled={!editable || timer.running}
-    >
-      Iniciar / continuar
-    </Button>
+            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+              <Button
+                onClick={startTimer}
+                disabled={!editable || timer.running}
+              >
+                Iniciar / continuar
+              </Button>
 
-    <Button
-      variant="outline"
-      onClick={() => setTimer((t) => ({ ...t, running: false }))}
-      disabled={!editable}
-    >
-      Pausar
-    </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setTimer((t) => ({ ...t, running: false }))
+                }
+                disabled={!editable}
+              >
+                Pausar
+              </Button>
 
-    <Button
-      variant="ghost"
-      onClick={() => setTimer({ running: false, seconds: 0 })}
-      disabled={!editable}
-    >
-      Reiniciar
-    </Button>
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  setTimer({ running: false, seconds: 0 })
+                }
+                disabled={!editable}
+              >
+                Reiniciar
+              </Button>
 
-    <Button
-      variant="outline"
-      onClick={() => updateActive({ heatSeconds: timer.seconds })}
-      disabled={!editable}
-    >
-      Guardar tiempo
-    </Button>
-  </div>
-</div>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  updateActive({ heatSeconds: timer.seconds })
+                }
+                disabled={!editable}
+              >
+                Guardar tiempo
+              </Button>
+            </div>
+          </div>
 
-                  {/* Temperatura máxima */}
-                  <Field label="Temperatura máxima alcanzada (°C)">
-                    <NumberInput
-                      value={maxTemp}
-                      onChange={(e) => setMaxTemp(e.target.value)}
-                      readOnly={!editable}
-                    />
-                  </Field>
+          {/* Temperatura máxima */}
+          <Field label="Temperatura máxima alcanzada (°C)">
+            <NumberInput
+              value={maxTemp}
+              onChange={(e) => setMaxTemp(e.target.value)}
+              readOnly={!editable}
+            />
+          </Field>
 
-                  {/* Notas */}
-                  <Field label="Notas de calentamiento">
-                    <textarea
-                      className="w-full border rounded px-2 py-1 text-sm"
-                      rows={3}
-                      value={heatNotes}
-                      onChange={(e) => setHeatNotes(e.target.value)}
-                      readOnly={!editable}
-                    />
-                  </Field>
+          {/* Notas */}
+          <Field label="Notas de calentamiento">
+            <textarea
+              className="w-full border rounded px-2 py-1 text-sm"
+              rows={3}
+              value={heatNotes}
+              onChange={(e) => setHeatNotes(e.target.value)}
+              readOnly={!editable}
+            />
+          </Field>
 
-                  <Field label="Notas finales / observaciones de la película">
-                    <textarea
-                      className="w-full border rounded px-2 py-1 text-sm"
-                      rows={3}
-                      value={finalNotes}
-                      onChange={(e) => setFinalNotes(e.target.value)}
-                      readOnly={!editable}
-                    />
-                  </Field>
+          <Field label="Notas finales / observaciones de la película">
+            <textarea
+              className="w-full border rounded px-2 py-1 text-sm"
+              rows={3}
+              value={finalNotes}
+              onChange={(e) => setFinalNotes(e.target.value)}
+              readOnly={!editable}
+            />
+          </Field>
 
-                  {/* Foto final */}
-                  <div className="mt-3">
-                    <label className="text-sm font-medium block mb-1">
-                      Foto de la película (opcional)
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) savePhoto(file);
-                      }}
-                      className="text-xs"
-                      disabled={!editable}
-                    />
-                    {active.finalPhotoDataUrl && (
-                      <div className="mt-2">
-                        <img
-                          src={active.finalPhotoDataUrl}
-                          alt="Película final"
-                          className="max-h-48 rounded border"
-                        />
-                      </div>
-                    )}
-                  </div>
+          {/* Foto final */}
+          <div className="mt-3">
+            <label className="text-sm font-medium block mb-1">
+              Foto de la película (opcional)
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) savePhoto(file);
+              }}
+              className="text-xs"
+              disabled={!editable}
+            />
+            {active.finalPhotoDataUrl && (
+              <div className="mt-2">
+                <img
+                  src={active.finalPhotoDataUrl}
+                  alt="Película final"
+                  className="max-h-48 rounded border"
+                />
+              </div>
+            )}
+          </div>
 
-                  {/* Botones de guardar y navegación */}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Button
-                      onClick={() =>
-                        updateActive({
-                          heatingNotes: heatNotes,
-                          finalNotes,
-                          maxTemp: maxTemp ? Number(maxTemp) : null,
-                          heatSeconds: timer.seconds,
-                        })
-                      }
-                      disabled={!editable}
-                    >
-                      Guardar cambios
-                    </Button>
+          {/* Botones de guardar y navegación */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button
+              onClick={() =>
+                updateActive({
+                  heatingNotes: heatNotes,
+                  finalNotes,
+                  maxTemp: maxTemp ? Number(maxTemp) : null,
+                  heatSeconds: timer.seconds,
+                })
+              }
+              disabled={!editable}
+            >
+              Guardar cambios
+            </Button>
 
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setActive(null);
-                        setView("dashboard");
-                      }}
-                    >
-                      Volver a la búsqueda
-                    </Button>
-                  </div>
-                </>
-              );
-            })()}
-          </Section>
-        )}
-
-        {/* Modal / panel de Auditoría */}
-        {showAudit && <AuditLog onClose={() => setShowAudit(false)} />}
-      </div>
-    </div>
-  );
-}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setActive(null);
+                setView("dashboard");
+              }}
+            >
+              Volver a la búsqueda
+            </Button>
+          </div>
+        </>
+      );
+    })()}
+  </Section>
+)}
 
 
 
