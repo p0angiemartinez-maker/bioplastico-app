@@ -82,10 +82,11 @@ export default function Login({ onLogin }) {
         </button>
 
         <div className="text-xs text-gray-500 mt-2 text-center">
-          Admin: <b>amartin16099@universidadean.edu.co</b> / <b>admin123</b>
+          Admin: <b>amartin16099@universidadean.edu.co</b>
         </div>
       </form>
     </div>
   );
 }
+
 
