@@ -716,7 +716,7 @@ useEffect(() => {
                         <h3 className="font-semibold text-sm">
                           Experimento {num}
                         </h3>
-                        <div className="flex gap-2 text-xs">
+                        <div className="flex gap-3 items-center text-xs">
                           <button
                             onClick={exportCSV}
                             className="underline"
@@ -729,8 +729,20 @@ useEffect(() => {
                           >
                             Copiar códigos
                           </button>
+
+                          {/* Solo visible si el usuario actual puede borrar (admin) */}
+                          {canDelete() && (
+                            <button
+                              onClick={() => deleteExp(num)}
+                              className="text-rose-600 underline"
+                            >
+                              Eliminar experimento
+                            </button>
+                          )}
                         </div>
                       </div>
+                      ...
+                    </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                         {group.map((p) => (
@@ -943,6 +955,7 @@ useEffect(() => {
     </div>
   );
 }
+
 
 
 
