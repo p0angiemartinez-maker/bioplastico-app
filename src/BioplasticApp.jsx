@@ -1036,67 +1036,54 @@ export default function BioplasticApp({ onLogout }) {
                     </div>
                   </div>
 
-                  {/* Timer de calentamiento */}
-                  <div className="mb-4 border rounded-lg p-3">
-                    <div className="flex items-center justify_between mb-2">
-                      <span className="text-sm font-semibold">
-                        Tiempo de calentamiento
-                      </span>
-                      <span className="font-mono text-lg">
-                        {String(
-                          Math.floor(timer.seconds / 60)
-                        ).padStart(2, "0")}
-                        :
-                        {String(timer.seconds % 60).padStart(2, "0")}
-                      </span>
-                    </div>
+{/* Timer de calentamiento */}
+<div className="mb-4 border rounded-lg p-4">
+  {/* Título + tiempo centrado */}
+  <div className="flex flex-col items-center mb-3">
+    <span className="text-sm font-semibold mb-1">
+      Tiempo de calentamiento
+    </span>
 
-                    {/* Semáforo basado en tiempo objetivo y tolerancia */}
-                    <div className="mb-3">
-                      <TrafficLight
-                        seconds={timer.seconds}
-                        targetSeconds={HEATING_TARGET_SECONDS}
-                        tolerance={HEATING_TOLERANCE}
-                      />
-                    </div>
+    <span className="font-mono text-3xl tracking-wide">
+      {String(Math.floor(timer.seconds / 60)).padStart(2, "0")}:
+      {String(timer.seconds % 60).padStart(2, "0")}
+    </span>
+  </div>
 
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={startTimer}
-                        disabled={!editable || timer.running}
-                      >
-                        Iniciar / continuar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          setTimer((t) => ({
-                            ...t,
-                            running: false,
-                          }))
-                        }
-                        disabled={!editable}
-                      >
-                        Pausar
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() =>
-                          setTimer({ running: false, seconds: 0 })
-                        }
-                        disabled={!editable}
-                      >
-                        Reiniciar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={saveHeatData}
-                        disabled={!editable}
-                      >
-                        Guardar tiempo
-                      </Button>
-                    </div>
-                  </div>
+  {/* Botones de control */}
+  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+    <Button
+      onClick={startTimer}
+      disabled={!editable || timer.running}
+    >
+      Iniciar / continuar
+    </Button>
+
+    <Button
+      variant="outline"
+      onClick={() => setTimer((t) => ({ ...t, running: false }))}
+      disabled={!editable}
+    >
+      Pausar
+    </Button>
+
+    <Button
+      variant="ghost"
+      onClick={() => setTimer({ running: false, seconds: 0 })}
+      disabled={!editable}
+    >
+      Reiniciar
+    </Button>
+
+    <Button
+      variant="outline"
+      onClick={() => updateActive({ heatSeconds: timer.seconds })}
+      disabled={!editable}
+    >
+      Guardar tiempo
+    </Button>
+  </div>
+</div>
 
                   {/* Temperatura máxima */}
                   <Field label="Temperatura máxima alcanzada (°C)">
@@ -1192,6 +1179,7 @@ export default function BioplasticApp({ onLogout }) {
     </div>
   );
 }
+
 
 
 
