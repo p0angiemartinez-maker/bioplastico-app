@@ -207,21 +207,23 @@ export default function BioplasticApp({ onLogout }) {
   const [results, setResults] = useState(null);
   const [active, setActive] = useState(null);
 
-  const [timer, setTimer] = useState({ running: false, seconds: 0 });
-  const tRef = useRef(null);
-  const [heatNotes, setHeatNotes] = useState("");
-  const [maxTemp, setMaxTemp] = useState("");
-  const [finalNotes, setFinalNotes] = useState("");
-  const [showAudit, setShowAudit] = useState(false);
+// Estados del cronómetro y notas
+const [timer, setTimer] = useState({ running: false, seconds: 0 });
+const [heatNotes, setHeatNotes] = useState("");
+const [maxTemp, setMaxTemp] = useState("");
+const [finalNotes, setFinalNotes] = useState("");
+const [showAudit, setShowAudit] = useState(false);
 
-  // limpiar temporizador al desmontar
-  useEffect(() => {
-    return () => {
-      if (tRef.current) {
-        clearInterval(tRef.current);
-      }
-    };
-  }, []);
+// Nuevo cronómetro real a 1 segundo exacto
+useEffect(() => {
+  if (!timer.running) return; // si no está corriendo, no hace nada
+
+  const interval = setInterval(() => {
+    setTimer((t) => ({ ...t, seconds: t.seconds + 1 }));
+  }, 1000); // 1 segundo real
+
+  return () => clearInterval(interval);
+}, [timer.running]);
 
   const startExperiment = (base, replicas) => {
     const u = getCurrentUser();
@@ -960,6 +962,7 @@ export default function BioplasticApp({ onLogout }) {
     </div>
   );
 }
+
 
 
 
