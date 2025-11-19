@@ -8,6 +8,7 @@ import {
 import { logAudit } from "./audit";
 import AuditLog from "./AuditLog.jsx";
 import logoEAN from "./assets/ean-logo.png";
+import TrafficLight from "./TrafficLight.jsx";
 /* ---------------- Storage & helpers ---------------- */
 const STORAGE = {
   practices: "bioplastic_practices_v1",
@@ -188,6 +189,8 @@ function ReliabilityCard({ practices }) {
 
 /* ---------------- Componente principal ---------------- */
 export default function BioplasticApp({ onLogout }) {
+  const HEATING_TARGET_SECONDS = 600; // ajusta este valor a tu POE real
+  const HEATING_TOLERANCE = 0.1;     // ±10 % como rango "ok"
   const [view, setView] = useState("home");
   const [baseStarch, setBaseStarch] = useState(10);
   const calc = useMemo(() => calcByStarch(baseStarch), [baseStarch]);
@@ -817,56 +820,63 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* Timer de calentamiento */}
-                  <div className="mb-4 border rounded-lg p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold">
-                        Tiempo de calentamiento
-                      </span>
-                      <span className="font-mono text-lg">
-                        {String(
-                          Math.floor(timer.seconds / 60)
-                        ).padStart(2, "0")}
-                        :
-                        {String(timer.seconds % 60).padStart(2, "0")}
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={startTimer}
-                        disabled={!editable || timer.running}
-                      >
-                        Iniciar / continuar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          setTimer((t) => ({ ...t, running: false }))
-                        }
-                        disabled={!editable}
-                      >
-                        Pausar
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        onClick={() =>
-                          setTimer({ running: false, seconds: 0 })
-                        }
-                        disabled={!editable}
-                      >
-                        Reiniciar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          updateActive({ heatSeconds: timer.seconds })
-                        }
-                        disabled={!editable}
-                      >
-                        Guardar tiempo
-                      </Button>
-                    </div>
-                  </div>
+  {/* Timer de calentamiento */}
+  <div className="mb-4 border rounded-lg p-3">
+    <div className="flex items-center justify-between mb-2">
+      <span className="text-sm font-semibold">
+        Tiempo de calentamiento
+      </span>
+      <span className="font-mono text-lg">
+        {String(Math.floor(timer.seconds / 60)).padStart(2, "0")}:
+        {String(timer.seconds % 60).padStart(2, "0")}
+      </span>
+    </div>
+
+    {/* Semáforo basado en tiempo objetivo y tolerancia */}
+    <div className="mb-3">
+      <TrafficLight
+        seconds={timer.seconds}
+        targetSeconds={HEATING_TARGET_SECONDS}
+        tolerance={HEATING_TOLERANCE}
+      />
+    </div>
+
+    <div className="flex gap-2">
+      <Button
+        onClick={startTimer}
+        disabled={!editable || timer.running}
+      >
+        Iniciar / continuar
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() =>
+          setTimer((t) => ({ ...t, running: false }))
+        }
+        disabled={!editable}
+      >
+        Pausar
+      </Button>
+      <Button
+        variant="ghost"
+        onClick={() =>
+          setTimer({ running: false, seconds: 0 })
+        }
+        disabled={!editable}
+      >
+        Reiniciar
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() =>
+          updateActive({ heatSeconds: timer.seconds })
+        }
+        disabled={!editable}
+      >
+        Guardar tiempo
+      </Button>
+    </div>
+  </div>
 
                   {/* Temperatura máxima */}
                   <Field label="Temperatura máxima alcanzada (°C)">
@@ -962,6 +972,7 @@ useEffect(() => {
     </div>
   );
 }
+
 
 
 
