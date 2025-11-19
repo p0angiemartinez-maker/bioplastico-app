@@ -741,9 +741,23 @@ useEffect(() => {
                           )}
                         </div>
                       </div>
-                      ...
-                    </div>
 
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                        {group.map((p) => (
+                          <button
+                            key={p.code}
+                            onClick={() => openPractice(p)}
+                            className="border rounded px-2 py-1 text-left hover:bg-emerald-50"
+                          >
+                            <div className="font-mono text-[11px]">
+                              {p.code}
+                            </div>
+                            <div>Práctica #{p.practiceNumber}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                         {group.map((p) => (
                           <button
@@ -951,6 +965,7 @@ useEffect(() => {
     </div>
   );
 }
+
 
 
 
