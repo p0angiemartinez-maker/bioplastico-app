@@ -392,15 +392,12 @@ function ReliabilityCard({ practices }) {
 }
 /* ---------------- Componente principal ---------------- */
 export default function BioplasticApp({ onLogout }) {
-  const HEATING_TARGET_SECONDS = 600; // ajusta este valor a tu POE real
-  const HEATING_TOLERANCE = 0.1; // ±10 % como rango "ok"
+  const HEATING_TARGET_SECONDS = 600; // tu valor de POE
+  const HEATING_TOLERANCE = 0.1;
 
   const [view, setView] = useState("home");
   const [baseStarch, setBaseStarch] = useState(10);
-  const calc = useMemo(
-    () => calcByStarch(baseStarch),
-    [baseStarch]
-  );
+  const calc = useMemo(() => calcByStarch(baseStarch), [baseStarch]);
   const [repCalc, setRepCalc] = useState(1);
 
   const [manual, setManual] = useState({
@@ -424,7 +421,7 @@ export default function BioplasticApp({ onLogout }) {
   const [finalNotes, setFinalNotes] = useState("");
   const [showAudit, setShowAudit] = useState(false);
 
-  // Cronómetro basado en useEffect (1 segundo real)
+  // Cronómetro real a 1 segundo
   useEffect(() => {
     if (!timer.running) return;
 
@@ -505,7 +502,6 @@ export default function BioplasticApp({ onLogout }) {
       return doSet(list);
     }
 
-    // auto
     if (/^\d+$/.test(t) && t.length <= 3) {
       const list = findPracticesByExperiment(Number(t)).sort(
         (a, b) => a.practiceNumber - b.practiceNumber
@@ -528,7 +524,10 @@ export default function BioplasticApp({ onLogout }) {
 
   const updateActive = (partial) => {
     if (!active) return;
-    if (!canEdit(active)) return alert("Sin permisos");
+    if (!canEdit(active)) {
+      alert("Sin permisos");
+      return;
+    }
     const up = { ...active, ...partial };
     setActive(up);
     savePractice(up);
@@ -537,31 +536,6 @@ export default function BioplasticApp({ onLogout }) {
   const startTimer = () => {
     if (!canEdit(active) || timer.running) return;
     setTimer((t) => ({ ...t, running: true }));
-  };
-
-  const saveHeatData = () => {
-    if (!canEdit(active)) return;
-    const minutes = round2(timer.seconds / 60);
-    const t = Number(maxTemp);
-    updateActive({
-      heatSeconds: timer.seconds,
-      heatMinutes: minutes,
-      maxTemp: isNaN(t) ? undefined : t,
-      heatingNotes: heatNotes,
-    });
-    const current = getCurrentUser();
-    logAudit("practice:save_heat", {
-      user: current,
-      experimentNumber: active?.experimentNumber,
-      practiceCode: active?.code,
-      payload: {
-        seconds: timer.seconds,
-        minutes,
-        maxTemp: t,
-        notes: heatNotes,
-      },
-    });
-    alert("Datos guardados");
   };
 
   const savePhoto = (file) => {
@@ -578,7 +552,10 @@ export default function BioplasticApp({ onLogout }) {
 
   const closeExperiment = (n) => {
     const exp = getExperiment(n);
-    if (!canClose(exp)) return alert("Solo admin");
+    if (!canClose(exp)) {
+      alert("Solo admin");
+      return;
+    }
     exp.closed = true;
     saveExperiment(exp);
     const current = getCurrentUser();
@@ -591,7 +568,10 @@ export default function BioplasticApp({ onLogout }) {
   };
 
   const deleteExp = (n) => {
-    if (!canDelete()) return alert("Solo admin");
+    if (!canDelete()) {
+      alert("Solo admin");
+      return;
+    }
     if (!confirm("Eliminar experimento?")) return;
     writeLS(
       STORAGE.practices,
@@ -615,7 +595,10 @@ export default function BioplasticApp({ onLogout }) {
   };
 
   const deletePracticeAdmin = (c) => {
-    if (!canDelete()) return alert("Solo admin");
+    if (!canDelete()) {
+      alert("Solo admin");
+      return;
+    }
     if (!confirm("Eliminar práctica?")) return;
     deletePractice(c);
     if (active?.code === c) setActive(null);
@@ -644,14 +627,10 @@ export default function BioplasticApp({ onLogout }) {
   return (
     <div className="min-h-screen w-full bg-gray-50 py-8 px-4 flex justify-center">
       <div className="w-full max-w-5xl space-y-4">
-        {/* Encabezado: logo + título */}
+        {/* Encabezado */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img
-              src={logoEAN}
-              alt="Universidad EAN"
-              className="h-10 w-auto"
-            />
+            <img src={logoEAN} alt="Universidad EAN" className="h-10 w-auto" />
             <div>
               <h1 className="text-lg font-bold text-emerald-700">
                 Bioplástico EAN
@@ -665,22 +644,11 @@ export default function BioplasticApp({ onLogout }) {
 
         {/* Botones principales */}
         <div className="mt-2 flex flex-wrap items-center justify-center gap-4">
-          <Button
-            onClick={() => setView("calculate")}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
+          <Button onClick={() => setView("calculate")}>
             Calcular reactivos
           </Button>
-          <Button
-            onClick={() => setView("manual")}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            Ingreso manual
-          </Button>
-          <Button
-            onClick={() => setView("dashboard")}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
+          <Button onClick={() => setView("manual")}>Ingreso manual</Button>
+          <Button onClick={() => setView("dashboard")}>
             Buscar experimentos
           </Button>
           {(isAdmin() || isInstructor()) && (
@@ -821,7 +789,6 @@ export default function BioplasticApp({ onLogout }) {
         {/* VISTA: Dashboard / Búsqueda */}
         {view === "dashboard" && (
           <Section title="Buscar experimentos">
-            {/* Input de búsqueda */}
             <div className="flex gap-2 mt-2">
               <input
                 value={query}
@@ -831,20 +798,15 @@ export default function BioplasticApp({ onLogout }) {
               />
               <Button
                 onClick={() => handleSearch(query)}
-                className="bg-emerald-600 hover:bg-emerald-700 text-sm"
+                className="text-sm"
               >
                 Buscar
               </Button>
-              <Button
-                variant="outline"
-                onClick={showAll}
-                className="text-sm"
-              >
+              <Button variant="outline" onClick={showAll} className="text-sm">
                 Ver todos
               </Button>
             </div>
 
-            {/* Filtros */}
             <div className="flex items-center gap-3 text-sm mt-4">
               <span className="text-gray-500">Modo:</span>
 
@@ -891,7 +853,6 @@ export default function BioplasticApp({ onLogout }) {
               </label>
             </div>
 
-            {/* Resultados */}
             {results === null ? (
               <p className="text-sm text-gray-500 mt-3">
                 Realiza una búsqueda para ver resultados.
@@ -984,7 +945,6 @@ export default function BioplasticApp({ onLogout }) {
                         ))}
                       </div>
 
-                      {/* 🔍 Semáforo de replicabilidad (tiempo y temperatura entre réplicas) */}
                       {group.length >= 2 && (
                         <div className="mt-3">
                           <ReliabilityCard practices={group} />
@@ -998,183 +958,197 @@ export default function BioplasticApp({ onLogout }) {
           </Section>
         )}
 
-{/* VISTA: Resumen práctica activa */}
-{active && view === "resume" && (
-  <Section title={`Práctica ${active.code}`}>
-    {(() => {
-      const editable = canEdit(active);
+        {/* VISTA: Resumen práctica activa */}
+        {active && view === "resume" && (
+          <Section title={`Práctica ${active.code}`}>
+            {(() => {
+              const editable = canEdit(active);
 
-      return (
-        <>
-          <p className="text-xs text-gray-500 mb-3">
-            Detalle de la práctica seleccionada.{" "}
-            {editable
-              ? "Puedes registrar tiempo, temperatura y notas."
-              : "Solo puedes consultar la información. Esta práctica pertenece a otro usuario."}
-          </p>
+              return (
+                <>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Detalle de la práctica seleccionada.{" "}
+                    {editable
+                      ? "Puedes registrar tiempo, temperatura y notas."
+                      : "Solo puedes consultar la información. Esta práctica pertenece a otro usuario."}
+                  </p>
 
-          {/* Info básica */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs mb-4">
-            <div className="border rounded px-2 py-1">
-              <div className="text-gray-500">Experimento</div>
-              <div className="font-semibold">
-                {active.experimentNumber}
-              </div>
-            </div>
-            <div className="border rounded px-2 py-1">
-              <div className="text-gray-500">Práctica</div>
-              <div className="font-semibold">
-                {active.practiceNumber}
-              </div>
-            </div>
-            <div className="border rounded px-2 py-1">
-              <div className="text-gray-500">Código</div>
-              <div className="font-mono text-[11px]">
-                {active.code}
-              </div>
-            </div>
-          </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs mb-4">
+                    <div className="border rounded px-2 py-1">
+                      <div className="text-gray-500">Experimento</div>
+                      <div className="font-semibold">
+                        {active.experimentNumber}
+                      </div>
+                    </div>
+                    <div className="border rounded px-2 py-1">
+                      <div className="text-gray-500">Práctica</div>
+                      <div className="font-semibold">
+                        {active.practiceNumber}
+                      </div>
+                    </div>
+                    <div className="border rounded px-2 py-1">
+                      <div className="text-gray-500">Código</div>
+                      <div className="font-mono text-[11px]">
+                        {active.code}
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Timer de calentamiento */}
-          <div className="mb-4 border rounded-lg p-4">
-            <div className="flex flex-col items-center mb-3">
-              <span className="text-sm font-semibold mb-1">
-                Tiempo de calentamiento
-              </span>
+                  {/* Timer de calentamiento */}
+                  <div className="mb-4 border rounded-lg p-4">
+                    <div className="flex flex-col items-center mb-3">
+                      <span className="text-sm font-semibold mb-1">
+                        Tiempo de calentamiento
+                      </span>
 
-              <span className="font-mono text-3xl tracking-wide">
-                {String(Math.floor(timer.seconds / 60)).padStart(2, "0")}:
-                {String(timer.seconds % 60).padStart(2, "0")}
-              </span>
-            </div>
+                      <span className="font-mono text-3xl tracking-wide">
+                        {String(
+                          Math.floor(timer.seconds / 60)
+                        ).padStart(2, "0")}
+                        :
+                        {String(timer.seconds % 60).padStart(2, "0")}
+                      </span>
+                    </div>
 
-            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-              <Button
-                onClick={startTimer}
-                disabled={!editable || timer.running}
-              >
-                Iniciar / continuar
-              </Button>
+                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                      <Button
+                        onClick={startTimer}
+                        disabled={!editable || timer.running}
+                      >
+                        Iniciar / continuar
+                      </Button>
 
-              <Button
-                variant="outline"
-                onClick={() =>
-                  setTimer((t) => ({ ...t, running: false }))
-                }
-                disabled={!editable}
-              >
-                Pausar
-              </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setTimer((t) => ({ ...t, running: false }))
+                        }
+                        disabled={!editable}
+                      >
+                        Pausar
+                      </Button>
 
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  setTimer({ running: false, seconds: 0 })
-                }
-                disabled={!editable}
-              >
-                Reiniciar
-              </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() =>
+                          setTimer({ running: false, seconds: 0 })
+                        }
+                        disabled={!editable}
+                      >
+                        Reiniciar
+                      </Button>
 
-              <Button
-                variant="outline"
-                onClick={() =>
-                  updateActive({ heatSeconds: timer.seconds })
-                }
-                disabled={!editable}
-              >
-                Guardar tiempo
-              </Button>
-            </div>
-          </div>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          updateActive({ heatSeconds: timer.seconds })
+                        }
+                        disabled={!editable}
+                      >
+                        Guardar tiempo
+                      </Button>
+                    </div>
+                  </div>
 
-          {/* Temperatura máxima */}
-          <Field label="Temperatura máxima alcanzada (°C)">
-            <NumberInput
-              value={maxTemp}
-              onChange={(e) => setMaxTemp(e.target.value)}
-              readOnly={!editable}
-            />
-          </Field>
+                  <Field label="Temperatura máxima alcanzada (°C)">
+                    <NumberInput
+                      value={maxTemp}
+                      onChange={(e) => setMaxTemp(e.target.value)}
+                      readOnly={!editable}
+                    />
+                  </Field>
 
-          {/* Notas */}
-          <Field label="Notas de calentamiento">
-            <textarea
-              className="w-full border rounded px-2 py-1 text-sm"
-              rows={3}
-              value={heatNotes}
-              onChange={(e) => setHeatNotes(e.target.value)}
-              readOnly={!editable}
-            />
-          </Field>
+                  <Field label="Notas de calentamiento">
+                    <textarea
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      rows={3}
+                      value={heatNotes}
+                      onChange={(e) => setHeatNotes(e.target.value)}
+                      readOnly={!editable}
+                    />
+                  </Field>
 
-          <Field label="Notas finales / observaciones de la película">
-            <textarea
-              className="w-full border rounded px-2 py-1 text-sm"
-              rows={3}
-              value={finalNotes}
-              onChange={(e) => setFinalNotes(e.target.value)}
-              readOnly={!editable}
-            />
-          </Field>
+                  <Field label="Notas finales / observaciones de la película">
+                    <textarea
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      rows={3}
+                      value={finalNotes}
+                      onChange={(e) => setFinalNotes(e.target.value)}
+                      readOnly={!editable}
+                    />
+                  </Field>
 
-          {/* Foto final */}
-          <div className="mt-3">
-            <label className="text-sm font-medium block mb-1">
-              Foto de la película (opcional)
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) savePhoto(file);
-              }}
-              className="text-xs"
-              disabled={!editable}
-            />
-            {active.finalPhotoDataUrl && (
-              <div className="mt-2">
-                <img
-                  src={active.finalPhotoDataUrl}
-                  alt="Película final"
-                  className="max-h-48 rounded border"
-                />
-              </div>
-            )}
-          </div>
+                  <div className="mt-3">
+                    <label className="text-sm font-medium block mb-1">
+                      Foto de la película (opcional)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) savePhoto(file);
+                      }}
+                      className="text-xs"
+                      disabled={!editable}
+                    />
+                    {active.finalPhotoDataUrl && (
+                      <div className="mt-2">
+                        <img
+                          src={active.finalPhotoDataUrl}
+                          alt="Película final"
+                          className="max-h-48 rounded border"
+                        />
+                      </div>
+                    )}
+                  </div>
 
-          {/* Botones de guardar y navegación */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button
-              onClick={() =>
-                updateActive({
-                  heatingNotes: heatNotes,
-                  finalNotes,
-                  maxTemp: maxTemp ? Number(maxTemp) : null,
-                  heatSeconds: timer.seconds,
-                })
-              }
-              disabled={!editable}
-            >
-              Guardar cambios
-            </Button>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button
+                      onClick={() =>
+                        updateActive({
+                          heatingNotes: heatNotes,
+                          finalNotes,
+                          maxTemp: maxTemp ? Number(maxTemp) : null,
+                          heatSeconds: timer.seconds,
+                        })
+                      }
+                      disabled={!editable}
+                    >
+                      Guardar cambios
+                    </Button>
 
-            <Button
-              variant="outline"
-              onClick={() => {
-                setActive(null);
-                setView("dashboard");
-              }}
-            >
-              Volver a la búsqueda
-            </Button>
-          </div>
-        </>
-      );
-    })()}
-  </Section>
-)}
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setActive(null);
+                        setView("dashboard");
+                      }}
+                    >
+                      Volver a la búsqueda
+                    </Button>
+
+                    {canDelete() && (
+                      <Button
+                        variant="danger"
+                        onClick={() => deletePracticeAdmin(active.code)}
+                      >
+                        Eliminar práctica
+                      </Button>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
+          </Section>
+        )}
+
+        {/* Modal / panel de Auditoría */}
+        {showAudit && <AuditLog onClose={() => setShowAudit(false)} />}
+      </div>
+    </div>
+  );
+}
 
 
 
