@@ -2,13 +2,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   getCurrentUser,
-  canSee, canEdit, canClose, canDelete,
-  isAdmin, isInstructor
+  canSee,
+  canEdit,
+  canClose,
+  canDelete,
+  isAdmin,
+  isInstructor,
 } from "./auth";
 import { logAudit } from "./audit";
 import AuditLog from "./AuditLog.jsx";
 import logoEAN from "./assets/ean-logo.png";
 import TrafficLight from "./TrafficLight.jsx";
+
 /* ---------------- Storage & helpers ---------------- */
 const STORAGE = {
   practices: "bioplastic_practices_v1",
@@ -18,10 +23,16 @@ const STORAGE = {
 const pad2 = (n) => n.toString().padStart(2, "0");
 const todayDDMMYY = (d = new Date()) =>
   `${pad2(d.getDate())}${pad2(d.getMonth() + 1)}${pad2(d.getFullYear() % 100)}`;
-const makeCode = (exp, p, d = new Date()) => `${pad2(exp)}${pad2(p)}${todayDDMMYY(d)}`;
+const makeCode = (exp, p, d = new Date()) =>
+  `${pad2(exp)}${pad2(p)}${todayDDMMYY(d)}`;
 
 const readLS = (k, fb) => {
-  try { const raw = localStorage.getItem(k); return raw ? JSON.parse(raw) : fb; } catch { return fb; }
+  try {
+    const raw = localStorage.getItem(k);
+    return raw ? JSON.parse(raw) : fb;
+  } catch {
+    return fb;
+  }
 };
 const writeLS = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
@@ -34,21 +45,28 @@ const nextExperimentNumber = () => {
 const saveExperiment = (exp) => {
   const all = readLS(STORAGE.experiments, []);
   const ix = all.findIndex((e) => e.experimentNumber === exp.experimentNumber);
-  if (ix >= 0) all[ix] = exp; else all.push(exp);
+  if (ix >= 0) all[ix] = exp;
+  else all.push(exp);
   writeLS(STORAGE.experiments, all);
 };
-const getExperiment = (n) => readLS(STORAGE.experiments, []).find((e) => e.experimentNumber === n);
+const getExperiment = (n) =>
+  readLS(STORAGE.experiments, []).find((e) => e.experimentNumber === n);
 
 const savePractice = (p) => {
   const all = readLS(STORAGE.practices, []);
   const ix = all.findIndex((x) => x.code === p.code);
-  if (ix >= 0) all[ix] = p; else all.push(p);
+  if (ix >= 0) all[ix] = p;
+  else all.push(p);
   writeLS(STORAGE.practices, all);
 };
 const deletePractice = (code) => {
-  writeLS(STORAGE.practices, readLS(STORAGE.practices, []).filter((p) => p.code !== code));
+  writeLS(
+    STORAGE.practices,
+    readLS(STORAGE.practices, []).filter((p) => p.code !== code)
+  );
 };
-const findPracticeByCode = (c) => readLS(STORAGE.practices, []).find((p) => p.code === c);
+const findPracticeByCode = (c) =>
+  readLS(STORAGE.practices, []).find((p) => p.code === c);
 const findPracticesByExperiment = (n) =>
   readLS(STORAGE.practices, []).filter((p) => p.experimentNumber === n);
 
@@ -56,17 +74,39 @@ const findPracticesByExperiment = (n) =>
 const round2 = (x) => Math.round((Number(x) + Number.EPSILON) * 100) / 100;
 const calcByStarch = (g) => {
   const f = Number(g || 0) / 10;
-  return { starch_g: round2(g), water_ml: round2(50 * f), acetic_ml: round2(2.5 * f), glycerin_ml: round2(2.5 * f) };
+  return {
+    starch_g: round2(g),
+    water_ml: round2(50 * f),
+    acetic_ml: round2(2.5 * f),
+    glycerin_ml: round2(2.5 * f),
+  };
 };
 
 /* ---------------- Confiabilidad ---------------- */
-const CRITERIA = { time: { dup_diff_ok: 8, trip_cv_ok: 8 }, temp: { dup_diff_ok: 3, trip_cv_ok: 3 } };
+const CRITERIA = {
+  time: { dup_diff_ok: 8, trip_cv_ok: 8 },
+  temp: { dup_diff_ok: 3, trip_cv_ok: 3 },
+};
 const YELLOW_FACTOR = 1.5;
-const mean = (a)=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
-const sd = (a)=>{ if(a.length<2) return 0; const m=mean(a); const v=a.reduce((s,x)=>s+(x-m)*(x-m),0)/(a.length-1); return Math.sqrt(v); };
-const cvPct = (a)=>{ const m=mean(a); if(!isFinite(m)||m===0) return 0; return sd(a)/Math.abs(m)*100; };
-const diffPctDup = (a,b)=>{ const avg=(a+b)/2; if(!isFinite(avg)||avg===0) return 0; return Math.abs(a-b)/avg*100; };
-const to2 = (x)=>Math.round(x*100)/100;
+const mean = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0);
+const sd = (a) => {
+  if (a.length < 2) return 0;
+  const m = mean(a);
+  const v =
+    a.reduce((s, x) => s + (x - m) * (x - m), 0) / (a.length - 1);
+  return Math.sqrt(v);
+};
+const cvPct = (a) => {
+  const m = mean(a);
+  if (!isFinite(m) || m === 0) return 0;
+  return (sd(a) / Math.abs(m)) * 100;
+};
+const diffPctDup = (a, b) => {
+  const avg = (a + b) / 2;
+  if (!isFinite(avg) || avg === 0) return 0;
+  return (Math.abs(a - b) / avg) * 100;
+};
+const to2 = (x) => Math.round(x * 100) / 100;
 
 // --- Helpers para obtener listas completas ---
 function getAllExperiments() {
@@ -77,24 +117,57 @@ function getAllPractices() {
   return readLS(STORAGE.practices, []);
 }
 
-function classifySemaforo({type, values}) {
-  const n = values.filter(v=>Number.isFinite(v)).length;
-  if (n < 2) return {status:"na", metric:null, value:null};
+function classifySemaforo({ type, values }) {
+  const n = values.filter((v) => Number.isFinite(v)).length;
+  if (n < 2) return { status: "na", metric: null, value: null };
   if (n === 2) {
     const v = diffPctDup(values[0], values[1]);
-    const ok = type==="time" ? CRITERIA.time.dup_diff_ok : CRITERIA.temp.dup_diff_ok;
+    const ok =
+      type === "time"
+        ? CRITERIA.time.dup_diff_ok
+        : CRITERIA.temp.dup_diff_ok;
     const warn = ok * YELLOW_FACTOR;
-    return {status: v<=ok?"ok":v<=warn?"warn":"fail", metric:"Dif%", value:to2(v)};
+    return {
+      status: v <= ok ? "ok" : v <= warn ? "warn" : "fail",
+      metric: "Dif%",
+      value: to2(v),
+    };
   }
   const v = cvPct(values);
-  const ok = type==="time" ? CRITERIA.time.trip_cv_ok : CRITERIA.temp.trip_cv_ok;
+  const ok =
+    type === "time"
+      ? CRITERIA.time.trip_cv_ok
+      : CRITERIA.temp.trip_cv_ok;
   const warn = ok * YELLOW_FACTOR;
-  return {status: v<=ok?"ok":v<=warn?"warn":"fail", metric:"CV%", value:to2(v)};
+  return {
+    status: v <= ok ? "ok" : v <= warn ? "warn" : "fail",
+    metric: "CV%",
+    value: to2(v),
+  };
 }
-function buildStats(values){
-  const clean=values.filter(Number.isFinite); if(!clean.length) return {n:0,mean:null,sd:null,cv:null,min:null,max:null,range:null};
-  const m=mean(clean), s=sd(clean);
-  return { n:clean.length, mean:to2(m), sd:to2(s), cv:m?to2((s/Math.abs(m))*100):null, min:to2(Math.min(...clean)), max:to2(Math.max(...clean)), range:to2(Math.max(...clean)-Math.min(...clean)) };
+function buildStats(values) {
+  const clean = values.filter(Number.isFinite);
+  if (!clean.length)
+    return {
+      n: 0,
+      mean: null,
+      sd: null,
+      cv: null,
+      min: null,
+      max: null,
+      range: null,
+    };
+  const m = mean(clean),
+    s = sd(clean);
+  return {
+    n: clean.length,
+    mean: to2(m),
+    sd: to2(s),
+    cv: m ? to2((s / Math.abs(m)) * 100) : null,
+    min: to2(Math.min(...clean)),
+    max: to2(Math.max(...clean)),
+    range: to2(Math.max(...clean) - Math.min(...clean)),
+  };
 }
 
 function downloadBlob(name, content, type = "text/csv;charset=utf-8") {
@@ -115,74 +188,161 @@ function csvEscape(v) {
 
 function buildGroupCSV(exp, group) {
   const header = [
-    "Codigo","NroExperimento","Practica","Fecha",
-    "Almidon_g","Agua_mL","AcidoAcetico_mL","Glicerina_mL",
-    "Tiempo_s","Tiempo_min","Temp_C","ObsCalentamiento","ObsFinales"
+    "Codigo",
+    "NroExperimento",
+    "Practica",
+    "Fecha",
+    "Almidon_g",
+    "Agua_mL",
+    "AcidoAcetico_mL",
+    "Glicerina_mL",
+    "Tiempo_s",
+    "Tiempo_min",
+    "Temp_C",
+    "ObsCalentamiento",
+    "ObsFinales",
   ].join(",");
 
-  const rows = group.map(p => [
-    p.code,
-    p.experimentNumber,
-    p.practiceNumber,
-    p.date ? new Date(p.date).toLocaleString() : "",
-    p.starch_g ?? "",
-    p.water_ml ?? "",
-    p.acetic_ml ?? "",
-    p.glycerin_ml ?? "",
-    p.heatSeconds ?? "",
-    p.heatMinutes ?? (p.heatSeconds ? Math.round((p.heatSeconds/60)*100)/100 : ""),
-    p.maxTemp ?? "",
-    p.heatingNotes ?? "",
-    p.finalNotes ?? ""
-  ].map(csvEscape).join(","));
+  const rows = group.map((p) =>
+    [
+      p.code,
+      p.experimentNumber,
+      p.practiceNumber,
+      p.date ? new Date(p.date).toLocaleString() : "",
+      p.starch_g ?? "",
+      p.water_ml ?? "",
+      p.acetic_ml ?? "",
+      p.glycerin_ml ?? "",
+      p.heatSeconds ?? "",
+      p.heatMinutes ??
+        (p.heatSeconds
+          ? Math.round((p.heatSeconds / 60) * 100) / 100
+          : ""),
+      p.maxTemp ?? "",
+      p.heatingNotes ?? "",
+      p.finalNotes ?? "",
+    ]
+      .map(csvEscape)
+      .join(",")
+  );
 
   const base = exp?.baseReagents || {};
-  const meta = `# Base: Almidon=${base.starch_g??""}g, Agua=${base.water_ml??""}mL, Acido=${base.acetic_ml??""}mL, Glicerina=${base.glycerin_ml??""}mL`;
+  const meta = `# Base: Almidon=${base.starch_g ?? ""}g, Agua=${
+    base.water_ml ?? ""
+  }mL, Acido=${base.acetic_ml ?? ""}mL, Glicerina=${
+    base.glycerin_ml ?? ""
+  }mL`;
 
   return [meta, header, ...rows].join("\n");
 }
 
 /* ---------------- UI helpers ---------------- */
 const Button = ({ children, variant = "primary", className = "", ...rest }) => {
-  const base = "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition";
-  const styles = { primary:"bg-emerald-600 text-white hover:bg-emerald-700", ghost:"bg-white border border-emerald-200 hover:bg-emerald-50", danger:"bg-rose-600 text-white hover:bg-rose-700" }[variant];
-  return <button className={`${base} ${styles} ${className}`} {...rest}>{children}</button>;
+  const base =
+    "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition";
+  const styles = {
+    primary: "bg-emerald-600 text-white hover:bg-emerald-700",
+    ghost:
+      "bg-white border border-emerald-200 hover:bg-emerald-50",
+    danger: "bg-rose-600 text-white hover:bg-rose-700",
+    outline: "bg-white border border-emerald-600 text-emerald-700 hover:bg-emerald-50",
+  }[variant] || "bg-emerald-600 text-white hover:bg-emerald-700";
+  return (
+    <button className={`${base} ${styles} ${className}`} {...rest}>
+      {children}
+    </button>
+  );
 };
-const NumberInput = (props) => <input type="number" step="any" {...props} className={`w-full border rounded-xl px-3 py-2 outline-none focus:ring focus:ring-emerald-200 ${props.className||""}`} />;
-const Field = ({ label, children }) => (<label className="block mb-3"><div className="text-sm font-medium text-gray-700 mb-1">{label}</div>{children}</label>);
+const NumberInput = (props) => (
+  <input
+    type="number"
+    step="any"
+    {...props}
+    className={`w-full border rounded-xl px-3 py-2 outline-none focus:ring focus:ring-emerald-200 ${
+      props.className || ""
+    }`}
+  />
+);
+const Field = ({ label, children }) => (
+  <label className="block mb-3">
+    <div className="text-sm font-medium text-gray-700 mb-1">
+      {label}
+    </div>
+    {children}
+  </label>
+);
 const Section = ({ title, right, children }) => (
   <div className="bg-white/80 rounded-2xl shadow p-4 sm:p-6 border border-emerald-100">
     <div className="flex items-center justify-between mb-3">
-      <h2 className="text-lg sm:text-xl font-semibold text-emerald-800">{title}</h2>
+      <h2 className="text-lg sm:text-xl font-semibold text-emerald-800">
+        {title}
+      </h2>
       {right}
     </div>
     {children}
   </div>
 );
-function Badge({status, children}) {
-  const cls = status==="ok"?"bg-green-100 text-green-800 border-green-200":status==="warn"?"bg-yellow-100 text-yellow-800 border-yellow-200":status==="fail"?"bg-rose-100 text-rose-800 border-rose-200":"bg-gray-100 text-gray-700 border-gray-200";
-  return <span className={`inline-block text-xs px-2 py-1 rounded border ${cls}`}>{children}</span>;
+function Badge({ status, children }) {
+  const cls =
+    status === "ok"
+      ? "bg-green-100 text-green-800 border-green-200"
+      : status === "warn"
+      ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+      : status === "fail"
+      ? "bg-rose-100 text-rose-800 border-rose-200"
+      : "bg-gray-100 text-gray-700 border-gray-200";
+  return (
+    <span
+      className={`inline-block text-xs px-2 py-1 rounded border ${cls}`}
+    >
+      {children}
+    </span>
+  );
 }
 function ReliabilityCard({ practices }) {
-  const times = practices.map(p => Number(p.heatSeconds / 60));
-  const temps = practices.map(p => Number(p.maxTemp));
-  const timeStats = buildStats(times), tempStats = buildStats(temps);
-  const timeClass = classifySemaforo({type:"time", values: times});
-  const tempClass = classifySemaforo({type:"temp", values: temps});
+  const times = practices.map((p) => Number(p.heatSeconds / 60));
+  const temps = practices.map((p) => Number(p.maxTemp));
+  const timeStats = buildStats(times),
+    tempStats = buildStats(temps);
+  const timeClass = classifySemaforo({ type: "time", values: times });
+  const tempClass = classifySemaforo({ type: "temp", values: temps });
   return (
     <div className="mt-3 bg-white border rounded-xl p-3">
       <div className="font-semibold mb-2">Confiabilidad de réplicas</div>
       <div className="grid sm:grid-cols-2 gap-3 text-sm">
         <div>
-          <div className="flex justify-between"><b>Tiempo (min)</b><Badge status={timeClass.status}>{timeClass.metric ? `${timeClass.metric}: ${timeClass.value}%` : "N/A"}</Badge></div>
-          <div className="text-xs text-gray-500">n={timeStats.n} | media={timeStats.mean} | SD={timeStats.sd} | CV={timeStats.cv}% | rango={timeStats.range}</div>
+          <div className="flex justify-between">
+            <b>Tiempo (min)</b>
+            <Badge status={timeClass.status}>
+              {timeClass.metric
+                ? `${timeClass.metric}: ${timeClass.value}%`
+                : "N/A"}
+            </Badge>
+          </div>
+          <div className="text-xs text-gray-500">
+            n={timeStats.n} | media={timeStats.mean} | SD={timeStats.sd} | CV=
+            {timeStats.cv}% | rango={timeStats.range}
+          </div>
         </div>
         <div>
-          <div className="flex justify-between"><b>Temperatura (°C)</b><Badge status={tempClass.status}>{tempClass.metric ? `${tempClass.metric}: ${tempClass.value}%` : "N/A"}</Badge></div>
-          <div className="text-xs text-gray-500">n={tempStats.n} | media={tempStats.mean} | SD={tempStats.sd} | CV={tempStats.cv}% | rango={tempStats.range}</div>
+          <div className="flex justify-between">
+            <b>Temperatura (°C)</b>
+            <Badge status={tempClass.status}>
+              {tempClass.metric
+                ? `${tempClass.metric}: ${tempClass.value}%`
+                : "N/A"}
+            </Badge>
+          </div>
+          <div className="text-xs text-gray-500">
+            n={tempStats.n} | media={tempStats.mean} | SD={tempStats.sd} | CV=
+            {tempStats.cv}% | rango={tempStats.range}
+          </div>
         </div>
       </div>
-      <div className="text-[10px] text-gray-400 mt-2">Basado en ISO 5725, GLP OECD, y SPC (Montgomery). Duplicado: Diferencia% · Triplicado: CV%.</div>
+      <div className="text-[10px] text-gray-400 mt-2">
+        Basado en ISO 5725, GLP OECD, y SPC (Montgomery). Duplicado:
+        Diferencia% · Triplicado: CV%.
+      </div>
     </div>
   );
 }
@@ -190,10 +350,14 @@ function ReliabilityCard({ practices }) {
 /* ---------------- Componente principal ---------------- */
 export default function BioplasticApp({ onLogout }) {
   const HEATING_TARGET_SECONDS = 600; // ajusta este valor a tu POE real
-  const HEATING_TOLERANCE = 0.1;     // ±10 % como rango "ok"
+  const HEATING_TOLERANCE = 0.1; // ±10 % como rango "ok"
+
   const [view, setView] = useState("home");
   const [baseStarch, setBaseStarch] = useState(10);
-  const calc = useMemo(() => calcByStarch(baseStarch), [baseStarch]);
+  const calc = useMemo(
+    () => calcByStarch(baseStarch),
+    [baseStarch]
+  );
   const [repCalc, setRepCalc] = useState(1);
 
   const [manual, setManual] = useState({
@@ -210,23 +374,23 @@ export default function BioplasticApp({ onLogout }) {
   const [results, setResults] = useState(null);
   const [active, setActive] = useState(null);
 
-// Estados del cronómetro y notas
-const [timer, setTimer] = useState({ running: false, seconds: 0 });
-const [heatNotes, setHeatNotes] = useState("");
-const [maxTemp, setMaxTemp] = useState("");
-const [finalNotes, setFinalNotes] = useState("");
-const [showAudit, setShowAudit] = useState(false);
+  // Estados del cronómetro y notas
+  const [timer, setTimer] = useState({ running: false, seconds: 0 });
+  const [heatNotes, setHeatNotes] = useState("");
+  const [maxTemp, setMaxTemp] = useState("");
+  const [finalNotes, setFinalNotes] = useState("");
+  const [showAudit, setShowAudit] = useState(false);
 
-// Nuevo cronómetro real a 1 segundo exacto
-useEffect(() => {
-  if (!timer.running) return; // si no está corriendo, no hace nada
+  // Cronómetro basado en useEffect (1 segundo real)
+  useEffect(() => {
+    if (!timer.running) return;
 
-  const interval = setInterval(() => {
-    setTimer((t) => ({ ...t, seconds: t.seconds + 1 }));
-  }, 1000); // 1 segundo real
+    const interval = setInterval(() => {
+      setTimer((t) => ({ ...t, seconds: t.seconds + 1 }));
+    }, 1000);
 
-  return () => clearInterval(interval);
-}, [timer.running]);
+    return () => clearInterval(interval);
+  }, [timer.running]);
 
   const startExperiment = (base, replicas) => {
     const u = getCurrentUser();
@@ -277,19 +441,16 @@ useEffect(() => {
       return;
     }
 
-    // helper para aplicar canSee siempre y setear resultados
     const doSet = (list) => {
       const filtered = (list || []).filter((p) => canSee(p, u));
       setResults(filtered);
     };
 
-    // modo "solo código"
     if (searchMode === "code") {
       const p = findPracticeByCode(t);
       return doSet(p ? [p] : []);
     }
 
-    // modo "solo número de experimento"
     if (searchMode === "exp") {
       if (!/^\d+$/.test(t)) {
         setResults([]);
@@ -301,8 +462,7 @@ useEffect(() => {
       return doSet(list);
     }
 
-    // auto (comportamiento actual)
-    // si son solo dígitos cortos → buscar por Nº experimento
+    // auto
     if (/^\d+$/.test(t) && t.length <= 3) {
       const list = findPracticesByExperiment(Number(t)).sort(
         (a, b) => a.practiceNumber - b.practiceNumber
@@ -310,7 +470,6 @@ useEffect(() => {
       return doSet(list);
     }
 
-    // si no, tratar como código único (EEPPDDMMYY)
     const p = findPracticeByCode(t);
     return doSet(p ? [p] : []);
   };
@@ -328,27 +487,36 @@ useEffect(() => {
     if (!active) return;
     if (!canEdit(active)) return alert("Sin permisos");
     const up = { ...active, ...partial };
-    setActive(up); savePractice(up);
+    setActive(up);
+    savePractice(up);
   };
 
   const startTimer = () => {
     if (!canEdit(active) || timer.running) return;
-    const id = setInterval(()=>setTimer(t=>({ ...t, seconds: t.seconds+1 })), 1000);
-    tRef.current = id; setTimer(t=>({ ...t, running:true }));
+    setTimer((t) => ({ ...t, running: true }));
   };
-  const stopTimer = () => { if (tRef.current) clearInterval(tRef.current); tRef.current=null; setTimer(t=>({ ...t, running:false })); };
 
   const saveHeatData = () => {
     if (!canEdit(active)) return;
     const minutes = round2(timer.seconds / 60);
     const t = Number(maxTemp);
-    updateActive({ heatSeconds: timer.seconds, heatMinutes: minutes, maxTemp: isNaN(t) ? undefined : t, heatingNotes: heatNotes });
+    updateActive({
+      heatSeconds: timer.seconds,
+      heatMinutes: minutes,
+      maxTemp: isNaN(t) ? undefined : t,
+      heatingNotes: heatNotes,
+    });
     const current = getCurrentUser();
     logAudit("practice:save_heat", {
       user: current,
       experimentNumber: active?.experimentNumber,
       practiceCode: active?.code,
-      payload: { seconds: timer.seconds, minutes, maxTemp: t, notes: heatNotes }
+      payload: {
+        seconds: timer.seconds,
+        minutes,
+        maxTemp: t,
+        notes: heatNotes,
+      },
     });
     alert("Datos guardados");
   };
@@ -356,63 +524,84 @@ useEffect(() => {
   const savePhoto = (file) => {
     if (!canEdit(active) || !file) return;
     const reader = new FileReader();
-    reader.onload = () => updateActive({ finalDate: new Date().toISOString(), finalPhotoDataUrl: reader.result, finalNotes });
+    reader.onload = () =>
+      updateActive({
+        finalDate: new Date().toISOString(),
+        finalPhotoDataUrl: reader.result,
+        finalNotes,
+      });
     reader.readAsDataURL(file);
   };
-
 
   const closeExperiment = (n) => {
     const exp = getExperiment(n);
     if (!canClose(exp)) return alert("Solo admin");
-    exp.closed = true; saveExperiment(exp);
+    exp.closed = true;
+    saveExperiment(exp);
     const current = getCurrentUser();
     logAudit("experiment:close", {
       user: current,
       experimentNumber: n,
     });
-    alert("Cerrado"); handleSearch(String(n));
+    alert("Cerrado");
+    handleSearch(String(n));
   };
-  
 
   const deleteExp = (n) => {
     if (!canDelete()) return alert("Solo admin");
     if (!confirm("Eliminar experimento?")) return;
-    writeLS(STORAGE.practices, readLS(STORAGE.practices, []).filter((p)=>p.experimentNumber!==n));
-    writeLS(STORAGE.experiments, readLS(STORAGE.experiments, []).filter((e)=>e.experimentNumber!==n));
+    writeLS(
+      STORAGE.practices,
+      readLS(STORAGE.practices, []).filter(
+        (p) => p.experimentNumber !== n
+      )
+    );
+    writeLS(
+      STORAGE.experiments,
+      readLS(STORAGE.experiments, []).filter(
+        (e) => e.experimentNumber !== n
+      )
+    );
     const current = getCurrentUser();
     logAudit("experiment:delete", {
       user: current,
-      experimentNumber: n
+      experimentNumber: n,
     });
-    alert("Eliminado"); setResults(null);
+    alert("Eliminado");
+    setResults(null);
   };
 
-  const deletePracticeAdmin = (c) => { if (!canDelete()) return alert("Solo admin"); if (!confirm("Eliminar práctica?")) return; deletePractice(c); if (active?.code===c) setActive(null); if (query) handleSearch(query); };
+  const deletePracticeAdmin = (c) => {
+    if (!canDelete()) return alert("Solo admin");
+    if (!confirm("Eliminar práctica?")) return;
+    deletePractice(c);
+    if (active?.code === c) setActive(null);
+    if (query) handleSearch(query);
+  };
+
   const showAll = () => {
     const u = getCurrentUser();
     let list = getAllPractices();
 
-    // Si existe el filtro "solo mis experimentos", aplicarlo
-    if (typeof showMineOnly !== "undefined" && showMineOnly) {
+    if (showMineOnly) {
       list = list.filter((p) => p.ownerId === u?.id);
     }
 
-    // Ordenar por experimento y práctica
     list.sort((a, b) =>
       a.experimentNumber === b.experimentNumber
         ? a.practiceNumber - b.practiceNumber
         : a.experimentNumber - b.experimentNumber
     );
 
-    // Limpiar búsqueda y mostrar resultados
     setQuery("");
     setResults(list);
   };
-/* ---------------- Render ---------------- */
+
+  /* ---------------- Render ---------------- */
   return (
     <div className="min-h-screen w-full bg-gray-50 py-8 px-4 flex justify-center">
       <div className="w-full max-w-5xl space-y-4">
-        {/* Encabezado: logo + título + cerrar sesión */}
+        {/* Encabezado: logo + título */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
@@ -429,7 +618,6 @@ useEffect(() => {
               </p>
             </div>
           </div>
-
         </header>
 
         {/* Botones principales */}
@@ -676,7 +864,6 @@ useEffect(() => {
                     results.map((p) => [p.experimentNumber, true])
                   ).keys()
                 ).map((num) => {
-                  // Agrupar por experimento
                   let group = results
                     .filter((p) => p.experimentNumber === num)
                     .sort(
@@ -685,14 +872,12 @@ useEffect(() => {
 
                   const exp = getExperiment(num);
 
-                  // Filtro "solo mis experimentos"
                   if (showMineOnly) {
                     const u = getCurrentUser();
                     group = group.filter((p) => p.ownerId === u?.id);
                     if (group.length === 0) return null;
                   }
 
-                  // Acciones del grupo
                   const exportCSV = () => {
                     const csv = buildGroupCSV(exp, group);
                     downloadBlob(
@@ -730,7 +915,6 @@ useEffect(() => {
                             Copiar códigos
                           </button>
 
-                          {/* Solo visible si el usuario actual puede borrar (admin) */}
                           {canDelete() && (
                             <button
                               onClick={() => deleteExp(num)}
@@ -761,7 +945,9 @@ useEffect(() => {
                 })}
               </div>
             )}
-        
+          </Section>
+        )}
+
         {/* VISTA: Resumen práctica activa */}
         {active && view === "resume" && (
           <Section title={`Práctica ${active.code}`}>
@@ -799,63 +985,67 @@ useEffect(() => {
                     </div>
                   </div>
 
-  {/* Timer de calentamiento */}
-  <div className="mb-4 border rounded-lg p-3">
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-sm font-semibold">
-        Tiempo de calentamiento
-      </span>
-      <span className="font-mono text-lg">
-        {String(Math.floor(timer.seconds / 60)).padStart(2, "0")}:
-        {String(timer.seconds % 60).padStart(2, "0")}
-      </span>
-    </div>
+                  {/* Timer de calentamiento */}
+                  <div className="mb-4 border rounded-lg p-3">
+                    <div className="flex items-center justify_between mb-2">
+                      <span className="text-sm font-semibold">
+                        Tiempo de calentamiento
+                      </span>
+                      <span className="font-mono text-lg">
+                        {String(
+                          Math.floor(timer.seconds / 60)
+                        ).padStart(2, "0")}
+                        :
+                        {String(timer.seconds % 60).padStart(2, "0")}
+                      </span>
+                    </div>
 
-    {/* Semáforo basado en tiempo objetivo y tolerancia */}
-    <div className="mb-3">
-      <TrafficLight
-        seconds={timer.seconds}
-        targetSeconds={HEATING_TARGET_SECONDS}
-        tolerance={HEATING_TOLERANCE}
-      />
-    </div>
+                    {/* Semáforo basado en tiempo objetivo y tolerancia */}
+                    <div className="mb-3">
+                      <TrafficLight
+                        seconds={timer.seconds}
+                        targetSeconds={HEATING_TARGET_SECONDS}
+                        tolerance={HEATING_TOLERANCE}
+                      />
+                    </div>
 
-    <div className="flex gap-2">
-      <Button
-        onClick={startTimer}
-        disabled={!editable || timer.running}
-      >
-        Iniciar / continuar
-      </Button>
-      <Button
-        variant="outline"
-        onClick={() =>
-          setTimer((t) => ({ ...t, running: false }))
-        }
-        disabled={!editable}
-      >
-        Pausar
-      </Button>
-      <Button
-        variant="ghost"
-        onClick={() =>
-          setTimer({ running: false, seconds: 0 })
-        }
-        disabled={!editable}
-      >
-        Reiniciar
-      </Button>
-      <Button
-        variant="outline"
-        onClick={() =>
-          updateActive({ heatSeconds: timer.seconds })
-        }
-        disabled={!editable}
-      >
-        Guardar tiempo
-      </Button>
-    </div>
-  </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={startTimer}
+                        disabled={!editable || timer.running}
+                      >
+                        Iniciar / continuar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          setTimer((t) => ({
+                            ...t,
+                            running: false,
+                          }))
+                        }
+                        disabled={!editable}
+                      >
+                        Pausar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() =>
+                          setTimer({ running: false, seconds: 0 })
+                        }
+                        disabled={!editable}
+                      >
+                        Reiniciar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={saveHeatData}
+                        disabled={!editable}
+                      >
+                        Guardar tiempo
+                      </Button>
+                    </div>
+                  </div>
 
                   {/* Temperatura máxima */}
                   <Field label="Temperatura máxima alcanzada (°C)">
@@ -951,8 +1141,6 @@ useEffect(() => {
     </div>
   );
 }
-
-
 
 
 
