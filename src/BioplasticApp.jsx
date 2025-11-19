@@ -940,6 +940,13 @@ export default function BioplasticApp({ onLogout }) {
                           </button>
                         ))}
                       </div>
+
+                      {/* 🔍 Semáforo de replicabilidad (tiempo y temperatura entre réplicas) */}
+                      {group.length >= 2 && (
+                        <div className="mt-3">
+                          <ReliabilityCard practices={group} />
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1141,6 +1148,7 @@ export default function BioplasticApp({ onLogout }) {
     </div>
   );
 }
+
 
 
 
