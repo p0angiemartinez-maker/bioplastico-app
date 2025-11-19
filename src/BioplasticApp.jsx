@@ -12,7 +12,6 @@ import {
 import { logAudit } from "./audit";
 import AuditLog from "./AuditLog.jsx";
 import logoEAN from "./assets/ean-logo.png";
-import TrafficLight from "./TrafficLight.jsx";
 
 /* ---------------- Storage & helpers ---------------- */
 const STORAGE = {
@@ -1176,6 +1175,7 @@ export default function BioplasticApp({ onLogout }) {
     })()}
   </Section>
 )}
+
 
 
 
