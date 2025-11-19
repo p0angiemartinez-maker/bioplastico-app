@@ -761,11 +761,7 @@ useEffect(() => {
                     </div>
                   );
                 })}
-              </div>
-            )}
-          </Section>
-        )}
-
+        
         {/* VISTA: Resumen práctica activa */}
         {active && view === "resume" && (
           <Section title={`Práctica ${active.code}`}>
@@ -955,6 +951,7 @@ useEffect(() => {
     </div>
   );
 }
+
 
 
 
