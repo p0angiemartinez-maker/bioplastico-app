@@ -20,9 +20,12 @@ const STORAGE = {
   experiments: "bioplastic_experiments_v1",
   counter: "bioplastic_experiment_counter_v1",
 };
+
 const pad2 = (n) => n.toString().padStart(2, "0");
 const todayDDMMYY = (d = new Date()) =>
-  `${pad2(d.getDate())}${pad2(d.getMonth() + 1)}${pad2(d.getFullYear() % 100)}`;
+  `${pad2(d.getDate())}${pad2(d.getMonth() + 1)}${pad2(
+    d.getFullYear() % 100
+  )}`;
 const makeCode = (exp, p, d = new Date()) =>
   `${pad2(exp)}${pad2(p)}${todayDDMMYY(d)}`;
 
@@ -49,6 +52,7 @@ const saveExperiment = (exp) => {
   else all.push(exp);
   writeLS(STORAGE.experiments, all);
 };
+
 const getExperiment = (n) =>
   readLS(STORAGE.experiments, []).find((e) => e.experimentNumber === n);
 
@@ -59,19 +63,23 @@ const savePractice = (p) => {
   else all.push(p);
   writeLS(STORAGE.practices, all);
 };
+
 const deletePractice = (code) => {
   writeLS(
     STORAGE.practices,
     readLS(STORAGE.practices, []).filter((p) => p.code !== code)
   );
 };
+
 const findPracticeByCode = (c) =>
   readLS(STORAGE.practices, []).find((p) => p.code === c);
+
 const findPracticesByExperiment = (n) =>
   readLS(STORAGE.practices, []).filter((p) => p.experimentNumber === n);
 
 /* ---------------- Cálculos ---------------- */
 const round2 = (x) => Math.round((Number(x) + Number.EPSILON) * 100) / 100;
+
 const calcByStarch = (g) => {
   const f = Number(g || 0) / 10;
   return {
@@ -88,25 +96,35 @@ const CRITERIA = {
   temp: { dup_diff_ok: 3, trip_cv_ok: 3 },
 };
 const YELLOW_FACTOR = 1.5;
+
 const mean = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0);
+
 const sd = (a) => {
   if (a.length < 2) return 0;
   const m = mean(a);
-  const v =
-    a.reduce((s, x) => s + (x - m) * (x - m), 0) / (a.length - 1);
+  const v = a.reduce((s, x) => s + (x - m) * (x - m), 0) / (a.length - 1);
   return Math.sqrt(v);
 };
+
 const cvPct = (a) => {
   const m = mean(a);
   if (!isFinite(m) || m === 0) return 0;
   return (sd(a) / Math.abs(m)) * 100;
 };
+
 const diffPctDup = (a, b) => {
   const avg = (a + b) / 2;
   if (!isFinite(avg) || avg === 0) return 0;
   return (Math.abs(a - b) / avg) * 100;
 };
+
 const to2 = (x) => Math.round(x * 100) / 100;
+
+// ⚠️ Usar solo valores numéricos > 0 (para no contar tiempos/temps en 0)
+const cleanPositives = (values) =>
+  values
+    .map(Number)
+    .filter((v) => Number.isFinite(v) && v > 0);
 
 // --- Helpers para obtener listas completas ---
 function getAllExperiments() {
@@ -118,10 +136,16 @@ function getAllPractices() {
 }
 
 function classifySemaforo({ type, values }) {
-  const n = values.filter((v) => Number.isFinite(v)).length;
-  if (n < 2) return { status: "na", metric: null, value: null };
+  const valid = cleanPositives(values);
+  const n = valid.length;
+
+  if (n < 2) {
+    return { status: "na", metric: null, value: null };
+  }
+
+  // Duplicado → diferencia porcentual
   if (n === 2) {
-    const v = diffPctDup(values[0], values[1]);
+    const v = diffPctDup(valid[0], valid[1]);
     const ok =
       type === "time"
         ? CRITERIA.time.dup_diff_ok
@@ -133,7 +157,9 @@ function classifySemaforo({ type, values }) {
       value: to2(v),
     };
   }
-  const v = cvPct(values);
+
+  // Triplicado (o más) → CV%
+  const v = cvPct(valid);
   const ok =
     type === "time"
       ? CRITERIA.time.trip_cv_ok
@@ -145,9 +171,10 @@ function classifySemaforo({ type, values }) {
     value: to2(v),
   };
 }
+
 function buildStats(values) {
-  const clean = values.filter(Number.isFinite);
-  if (!clean.length)
+  const clean = cleanPositives(values);
+  if (!clean.length) {
     return {
       n: 0,
       mean: null,
@@ -157,8 +184,11 @@ function buildStats(values) {
       max: null,
       range: null,
     };
-  const m = mean(clean),
-    s = sd(clean);
+  }
+
+  const m = mean(clean);
+  const s = sd(clean);
+
   return {
     n: clean.length,
     mean: to2(m),
@@ -170,6 +200,7 @@ function buildStats(values) {
   };
 }
 
+/* ---------------- Export / CSV helpers ---------------- */
 function downloadBlob(name, content, type = "text/csv;charset=utf-8") {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
@@ -240,19 +271,22 @@ function buildGroupCSV(exp, group) {
 const Button = ({ children, variant = "primary", className = "", ...rest }) => {
   const base =
     "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition";
-  const styles = {
-    primary: "bg-emerald-600 text-white hover:bg-emerald-700",
-    ghost:
-      "bg-white border border-emerald-200 hover:bg-emerald-50",
-    danger: "bg-rose-600 text-white hover:bg-rose-700",
-    outline: "bg-white border border-emerald-600 text-emerald-700 hover:bg-emerald-50",
-  }[variant] || "bg-emerald-600 text-white hover:bg-emerald-700";
+  const styles =
+    {
+      primary: "bg-emerald-600 text-white hover:bg-emerald-700",
+      ghost: "bg-white border border-emerald-200 hover:bg-emerald-50",
+      danger: "bg-rose-600 text-white hover:bg-rose-700",
+      outline:
+        "bg-white border border-emerald-600 text-emerald-700 hover:bg-emerald-50",
+    }[variant] || "bg-emerald-600 text-white hover:bg-emerald-700";
+
   return (
     <button className={`${base} ${styles} ${className}`} {...rest}>
       {children}
     </button>
   );
 };
+
 const NumberInput = (props) => (
   <input
     type="number"
@@ -263,6 +297,7 @@ const NumberInput = (props) => (
     }`}
   />
 );
+
 const Field = ({ label, children }) => (
   <label className="block mb-3">
     <div className="text-sm font-medium text-gray-700 mb-1">
@@ -271,6 +306,7 @@ const Field = ({ label, children }) => (
     {children}
   </label>
 );
+
 const Section = ({ title, right, children }) => (
   <div className="bg-white/80 rounded-2xl shadow p-4 sm:p-6 border border-emerald-100">
     <div className="flex items-center justify-between mb-3">
@@ -282,6 +318,7 @@ const Section = ({ title, right, children }) => (
     {children}
   </div>
 );
+
 function Badge({ status, children }) {
   const cls =
     status === "ok"
@@ -291,21 +328,29 @@ function Badge({ status, children }) {
       : status === "fail"
       ? "bg-rose-100 text-rose-800 border-rose-200"
       : "bg-gray-100 text-gray-700 border-gray-200";
+
   return (
-    <span
-      className={`inline-block text-xs px-2 py-1 rounded border ${cls}`}
-    >
+    <span className={`inline-block text-xs px-2 py-1 rounded border ${cls}`}>
       {children}
     </span>
   );
 }
+
 function ReliabilityCard({ practices }) {
-  const times = practices.map((p) => Number(p.heatSeconds / 60));
-  const temps = practices.map((p) => Number(p.maxTemp));
-  const timeStats = buildStats(times),
-    tempStats = buildStats(temps);
+  // tiempo en minutos solo si heatSeconds > 0
+  const times = practices.map((p) =>
+    p.heatSeconds && p.heatSeconds > 0 ? p.heatSeconds / 60 : NaN
+  );
+  // temperatura solo si maxTemp > 0
+  const temps = practices.map((p) =>
+    p.maxTemp && p.maxTemp > 0 ? p.maxTemp : NaN
+  );
+
+  const timeStats = buildStats(times);
+  const tempStats = buildStats(temps);
   const timeClass = classifySemaforo({ type: "time", values: times });
   const tempClass = classifySemaforo({ type: "temp", values: temps });
+
   return (
     <div className="mt-3 bg-white border rounded-xl p-3">
       <div className="font-semibold mb-2">Confiabilidad de réplicas</div>
@@ -346,7 +391,6 @@ function ReliabilityCard({ practices }) {
     </div>
   );
 }
-
 /* ---------------- Componente principal ---------------- */
 export default function BioplasticApp({ onLogout }) {
   const HEATING_TARGET_SECONDS = 600; // ajusta este valor a tu POE real
@@ -1148,6 +1192,7 @@ export default function BioplasticApp({ onLogout }) {
     </div>
   );
 }
+
 
 
 
