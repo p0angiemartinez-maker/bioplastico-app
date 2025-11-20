@@ -722,7 +722,7 @@ export default function BioplasticApp({ onLogout }) {
             <p className="text-xs text-gray-500 mb-2">
               Ingresa manualmente los reactivos de una práctica.
             </p>
-
+        
             <Field label="Agua (mL)">
               <NumberInput
                 value={manual.water_ml}
@@ -734,6 +734,7 @@ export default function BioplasticApp({ onLogout }) {
                 }
               />
             </Field>
+        
             <Field label="Ácido acético (mL)">
               <NumberInput
                 value={manual.acetic_ml}
@@ -745,6 +746,7 @@ export default function BioplasticApp({ onLogout }) {
                 }
               />
             </Field>
+        
             <Field label="Glicerina (mL)">
               <NumberInput
                 value={manual.glycerin_ml}
@@ -756,6 +758,7 @@ export default function BioplasticApp({ onLogout }) {
                 }
               />
             </Field>
+        
             <Field label="Almidón (g)">
               <NumberInput
                 value={manual.starch_g}
@@ -767,7 +770,7 @@ export default function BioplasticApp({ onLogout }) {
                 }
               />
             </Field>
-
+        
             <Field label="Número de réplicas">
               <select
                 className="border rounded px-2 py-1"
@@ -779,10 +782,17 @@ export default function BioplasticApp({ onLogout }) {
                 <option value={3}>3 (triplicado)</option>
               </select>
             </Field>
-
-            <Button variant="ghost" onClick={() => setView("home")}>
-              Volver
-            </Button>
+        
+            <div className="mt-4 flex gap-2">
+              {/* 🔹 ESTE ES EL BOTÓN QUE FALTABA */}
+              <Button onClick={() => startExperiment(manual, repManual)}>
+                Iniciar experimento
+              </Button>
+        
+              <Button variant="ghost" onClick={() => setView("home")}>
+                Volver
+              </Button>
+            </div>
           </Section>
         )}
 
@@ -1149,6 +1159,7 @@ export default function BioplasticApp({ onLogout }) {
     </div>
   );
 }
+
 
 
 
