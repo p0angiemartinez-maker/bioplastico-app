@@ -135,21 +135,22 @@ function getAllPractices() {
 }
 
 function classifySemaforo({ type, values }) {
-  const valid = cleanPositives(values);
-  const n = valid.length;
+  // Solo valores numéricos > 0
+  const clean = values.filter((v) => Number.isFinite(v) && v > 0);
+  const n = clean.length;
 
   if (n < 2) {
     return { status: "na", metric: null, value: null };
   }
 
-  // Duplicado → diferencia porcentual
   if (n === 2) {
-    const v = diffPctDup(valid[0], valid[1]);
+    const v = diffPctDup(clean[0], clean[1]);
     const ok =
       type === "time"
         ? CRITERIA.time.dup_diff_ok
         : CRITERIA.temp.dup_diff_ok;
     const warn = ok * YELLOW_FACTOR;
+
     return {
       status: v <= ok ? "ok" : v <= warn ? "warn" : "fail",
       metric: "Dif%",
@@ -157,13 +158,14 @@ function classifySemaforo({ type, values }) {
     };
   }
 
-  // Triplicado (o más) → CV%
-  const v = cvPct(valid);
+  // n >= 3 → usamos CV%
+  const v = cvPct(clean);
   const ok =
     type === "time"
       ? CRITERIA.time.trip_cv_ok
       : CRITERIA.temp.trip_cv_ok;
   const warn = ok * YELLOW_FACTOR;
+
   return {
     status: v <= ok ? "ok" : v <= warn ? "warn" : "fail",
     metric: "CV%",
@@ -172,7 +174,9 @@ function classifySemaforo({ type, values }) {
 }
 
 function buildStats(values) {
-  const clean = cleanPositives(values);
+  // Usar solo valores numéricos y > 0 (0 se considera "sin dato")
+  const clean = values.filter((v) => Number.isFinite(v) && v > 0);
+
   if (!clean.length) {
     return {
       n: 0,
@@ -336,17 +340,21 @@ function Badge({ status, children }) {
 }
 
 function ReliabilityCard({ practices }) {
-  // tiempo en minutos solo si heatSeconds > 0
-  const times = practices.map((p) =>
-    p.heatSeconds && p.heatSeconds > 0 ? p.heatSeconds / 60 : NaN
-  );
-  // temperatura solo si maxTemp > 0
-  const temps = practices.map((p) =>
-    p.maxTemp && p.maxTemp > 0 ? p.maxTemp : NaN
-  );
+  // Tiempo en minutos, solo si hay valor > 0
+  const times = practices.map((p) => {
+    const s = Number(p.heatSeconds);
+    return s > 0 ? s / 60 : NaN;
+  });
+
+  // Temperatura, solo si hay valor > 0
+  const temps = practices.map((p) => {
+    const t = Number(p.maxTemp);
+    return t > 0 ? t : NaN;
+  });
 
   const timeStats = buildStats(times);
   const tempStats = buildStats(temps);
+
   const timeClass = classifySemaforo({ type: "time", values: times });
   const tempClass = classifySemaforo({ type: "temp", values: temps });
 
@@ -1159,6 +1167,7 @@ export default function BioplasticApp({ onLogout }) {
     </div>
   );
 }
+
 
 
 
