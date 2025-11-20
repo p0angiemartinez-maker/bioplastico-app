@@ -522,126 +522,192 @@ export default function BioplasticApp({ onLogout }) {
   };
 
 const openPractice = (p) => {
-  // Leer siempre la versión más reciente desde almacenamiento
   const fresh = findPracticeByCode(p.code) || p;
 
   setActive(fresh);
   setHeatNotes(fresh.heatingNotes || "");
   setFinalNotes(fresh.finalNotes || "");
-  setMaxTemp(fresh.maxTemp?.toString() || "");
-  setTimer({ running: false, seconds: fresh.heatSeconds || 0 });
+  setMaxTemp(
+    fresh.maxTemp !== undefined && fresh.maxTemp !== null
+      ? String(fresh.maxTemp)
+      : ""
+  );
+  setTimer({
+    running: false,
+    seconds: fresh.heatSeconds || 0,
+  });
   setView("resume");
 };
 
+// Guarda cambios parciales en la práctica activa
 const updateActive = (partial) => {
   if (!active) return;
-  if (!canEdit(active)) return alert("Sin permisos");
 
-  const up = { ...active, ...partial };
+  if (!canEdit(active)) {
+    alert("Sin permisos");
+    return;
+  }
 
-  // Guardar en almacenamiento
-  savePractice(up);
+  const updated = { ...active, ...partial };
 
-  // Actualizar el estado de la práctica activa
-  setActive(up);
+  // Guardar en localStorage
+  savePractice(updated);
 
-  // 🔁 Mantener en sync la lista de resultados del dashboard
+  // Actualizar estado interno
+  setActive(updated);
+
+  // Actualizar también el listado que se muestra en el dashboard
   setResults((prev) =>
     prev
-      ? prev.map((item) => (item.code === up.code ? up : item))
+      ? prev.map((item) =>
+          item.code === updated.code ? updated : item
+        )
       : prev
   );
 };
 
-  const startTimer = () => {
-    if (!canEdit(active) || timer.running) return;
-    setTimer((t) => ({ ...t, running: true }));
-  };
+/**************************
+ * CRONÓMETRO Y CALENTAMIENTO
+ **************************/
 
-  const savePhoto = (file) => {
-    if (!canEdit(active) || !file) return;
-    const reader = new FileReader();
-    reader.onload = () =>
-      updateActive({
-        finalDate: new Date().toISOString(),
-        finalPhotoDataUrl: reader.result,
-        finalNotes,
-      });
-    reader.readAsDataURL(file);
-  };
+// Iniciar cronómetro (useEffect se encarga del intervalo)
+const startTimer = () => {
+  if (!canEdit(active) || timer.running) return;
+  setTimer((t) => ({ ...t, running: true }));
+};
 
-  const closeExperiment = (n) => {
-    const exp = getExperiment(n);
-    if (!canClose(exp)) {
-      alert("Solo admin");
-      return;
-    }
-    exp.closed = true;
-    saveExperiment(exp);
-    const current = getCurrentUser();
-    logAudit("experiment:close", {
-      user: current,
-      experimentNumber: n,
+// Pausar cronómetro
+const stopTimer = () => {
+  setTimer((t) => ({ ...t, running: false }));
+};
+
+// Guardar tiempo, minutos, temperatura y notas de calentamiento
+const saveHeatData = () => {
+  if (!canEdit(active)) return;
+
+  const minutes = round2(timer.seconds / 60);
+  const t = Number(maxTemp);
+
+  updateActive({
+    heatSeconds: timer.seconds,
+    heatMinutes: minutes,
+    maxTemp: isNaN(t) ? undefined : t,
+    heatingNotes: heatNotes,
+  });
+
+  const current = getCurrentUser();
+  logAudit("practice:save_heat", {
+    user: current,
+    experimentNumber: active?.experimentNumber,
+    practiceCode: active?.code,
+    payload: {
+      seconds: timer.seconds,
+      minutes,
+      maxTemp: t,
+      notes: heatNotes,
+    },
+  });
+
+  alert("Datos guardados");
+};
+
+/**************************
+ * FOTO FINAL
+ **************************/
+const savePhoto = (file) => {
+  if (!canEdit(active) || !file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    updateActive({
+      finalDate: new Date().toISOString(),
+      finalPhotoDataUrl: reader.result,
+      finalNotes,
     });
-    alert("Cerrado");
-    handleSearch(String(n));
   };
+  reader.readAsDataURL(file);
+};
 
-  const deleteExp = (n) => {
-    if (!canDelete()) {
-      alert("Solo admin");
-      return;
-    }
-    if (!confirm("Eliminar experimento?")) return;
-    writeLS(
-      STORAGE.practices,
-      readLS(STORAGE.practices, []).filter(
-        (p) => p.experimentNumber !== n
-      )
-    );
-    writeLS(
-      STORAGE.experiments,
-      readLS(STORAGE.experiments, []).filter(
-        (e) => e.experimentNumber !== n
-      )
-    );
-    const current = getCurrentUser();
-    logAudit("experiment:delete", {
-      user: current,
-      experimentNumber: n,
-    });
-    alert("Eliminado");
-    setResults(null);
-  };
+/**************************
+ * GESTIÓN DE EXPERIMENTOS
+ **************************/
 
-  const deletePracticeAdmin = (c) => {
-    if (!canDelete()) {
-      alert("Solo admin");
-      return;
-    }
-    if (!confirm("Eliminar práctica?")) return;
-    deletePractice(c);
-    if (active?.code === c) setActive(null);
-    if (query) handleSearch(query);
-  };
+const closeExperiment = (n) => {
+  const exp = getExperiment(n);
+  if (!canClose(exp)) {
+    alert("Solo admin");
+    return;
+  }
+  exp.closed = true;
+  saveExperiment(exp);
+  const current = getCurrentUser();
+  logAudit("experiment:close", {
+    user: current,
+    experimentNumber: n,
+  });
+  alert("Cerrado");
+  handleSearch(String(n));
+};
 
-  const showAll = () => {
-    const u = getCurrentUser();
-    let list = getAllPractices();
+const deleteExp = (n) => {
+  if (!canDelete()) {
+    alert("Solo admin");
+    return;
+  }
+  if (!confirm("Eliminar experimento?")) return;
 
-    if (showMineOnly) {
-      list = list.filter((p) => p.ownerId === u?.id);
-    }
+  writeLS(
+    STORAGE.practices,
+    readLS(STORAGE.practices, []).filter(
+      (p) => p.experimentNumber !== n
+    )
+  );
+  writeLS(
+    STORAGE.experiments,
+    readLS(STORAGE.experiments, []).filter(
+      (e) => e.experimentNumber !== n
+    )
+  );
 
-    list.sort((a, b) =>
-      a.experimentNumber === b.experimentNumber
-        ? a.practiceNumber - b.practiceNumber
-        : a.experimentNumber - b.experimentNumber
-    );
+  const current = getCurrentUser();
+  logAudit("experiment:delete", {
+    user: current,
+    experimentNumber: n,
+  });
 
-    setQuery("");
-    setResults(list);
-  };
+  alert("Eliminado");
+  setResults(null);
+};
+
+const deletePracticeAdmin = (c) => {
+  if (!canDelete()) {
+    alert("Solo admin");
+    return;
+  }
+  if (!confirm("Eliminar práctica?")) return;
+
+  deletePractice(c);
+  if (active?.code === c) setActive(null);
+  if (query) handleSearch(query);
+};
+
+const showAll = () => {
+  const u = getCurrentUser();
+  let list = getAllPractices();
+
+  if (showMineOnly) {
+    list = list.filter((p) => p.ownerId === u?.id);
+  }
+
+  list.sort((a, b) =>
+    a.experimentNumber === b.experimentNumber
+      ? a.practiceNumber - b.practiceNumber
+      : a.experimentNumber - b.experimentNumber
+  );
+
+  setQuery("");
+  setResults(list);
+};
 
   /* ---------------- Render ---------------- */
   return (
@@ -1179,6 +1245,7 @@ const updateActive = (partial) => {
     </div>
   );
 }
+
 
 
 
