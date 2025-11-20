@@ -521,25 +521,37 @@ export default function BioplasticApp({ onLogout }) {
     return doSet(p ? [p] : []);
   };
 
-  const openPractice = (p) => {
-    setActive(p);
-    setHeatNotes(p.heatingNotes || "");
-    setFinalNotes(p.finalNotes || "");
-    setMaxTemp(p.maxTemp?.toString() || "");
-    setTimer({ running: false, seconds: p.heatSeconds || 0 });
-    setView("resume");
-  };
+const openPractice = (p) => {
+  // Leer siempre la versión más reciente desde almacenamiento
+  const fresh = findPracticeByCode(p.code) || p;
 
-  const updateActive = (partial) => {
-    if (!active) return;
-    if (!canEdit(active)) {
-      alert("Sin permisos");
-      return;
-    }
-    const up = { ...active, ...partial };
-    setActive(up);
-    savePractice(up);
-  };
+  setActive(fresh);
+  setHeatNotes(fresh.heatingNotes || "");
+  setFinalNotes(fresh.finalNotes || "");
+  setMaxTemp(fresh.maxTemp?.toString() || "");
+  setTimer({ running: false, seconds: fresh.heatSeconds || 0 });
+  setView("resume");
+};
+
+const updateActive = (partial) => {
+  if (!active) return;
+  if (!canEdit(active)) return alert("Sin permisos");
+
+  const up = { ...active, ...partial };
+
+  // Guardar en almacenamiento
+  savePractice(up);
+
+  // Actualizar el estado de la práctica activa
+  setActive(up);
+
+  // 🔁 Mantener en sync la lista de resultados del dashboard
+  setResults((prev) =>
+    prev
+      ? prev.map((item) => (item.code === up.code ? up : item))
+      : prev
+  );
+};
 
   const startTimer = () => {
     if (!canEdit(active) || timer.running) return;
@@ -1167,6 +1179,7 @@ export default function BioplasticApp({ onLogout }) {
     </div>
   );
 }
+
 
 
 
